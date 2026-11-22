@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="六级英语">
+<meta name="theme-color" content="#f2f3f5">
+<title>六级英语</title>
+<style>
+:root{
+  --bg:#f2f3f5;
+  --card:#ffffff;
+  --cardT:rgba(255,255,255,.86);
+  --tx:#16181d;
+  --mu:#8b9099;
+  --mu2:#a8adb5;
+  --line:#e8eaee;
+  --acc:#2f6fed;
+  --warnBg:#fff6e3;
+  --warnTx:#8a5a00;
+  --danger:#d0442f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--tx);font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(72px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+input{font-family:inherit;font-size:16px}
+
+#bgLayer{position:fixed;inset:0;z-index:0;background:var(--bg);background-size:cover;background-position:center center;background-repeat:no-repeat;display:none}
+#bgLayer.on{display:block}
+#bgShade{position:absolute;inset:0;background:#000;opacity:0}
+#wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 14px}
+
+/* 顶部标题 */
+.top{padding:18px 2px 6px;display:flex;align-items:baseline;justify-content:space-between}
+.top h1{font-size:19px;margin:0;letter-spacing:.5px;font-weight:600}
+.top .date{font-size:12px;color:var(--mu2)}
+
+/* hero 统计 */
+.hero{background:var(--cardT);border-radius:16px;padding:18px 18px 16px;margin:8px 0 14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.hero-row{display:flex;gap:12px}
+.hero-cell{flex:1;min-width:0}
+.hero-cell .lbl{display:block;font-size:12px;color:var(--mu);margin-bottom:2px}
+.hero-cell .num{
+  font-size:36px;line-height:1.12;font-weight:600;letter-spacing:-.5px;
+  font-variant-numeric:tabular-nums;
+}
+.hero-cell.r{text-align:right}
+.streak{margin-top:10px;font-size:13px;color:var(--mu)}
+.streak b{color:var(--tx);font-size:15px;font-variant-numeric:tabular-nums}
+
+/* 目标卡 */
+#goalList{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.goalcard{position:relative;min-height:152px;background:var(--cardT);border-radius:15px;padding:13px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;border:1px solid transparent}
+.goalcard:active{background:#fafbfc}
+.goalcard.master{border-color:#cfe8d8;background:rgba(247,253,249,.88)}
+.gc-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gc-name{font-size:15.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gc-progress{font-size:12.5px;color:var(--mu2);margin-top:9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gc-progress b{font-size:22px;color:var(--tx);font-weight:600;letter-spacing:-.4px}
+.gc-progress .full{font-size:10px;color:#177a46;background:#e6f6ec;padding:2px 7px;border-radius:99px;margin-left:8px;font-style:normal;vertical-align:3px}
+.gc-bar{height:5px;border-radius:3px;background:#eceef1;margin-top:8px;overflow:hidden}
+.gc-bar i{display:block;height:100%;background:var(--acc);border-radius:3px;transition:width .35s ease}
+.goalcard.master .gc-bar i{background:#2aa163}
+.gc-meta{font-size:11.5px;color:var(--mu);margin-top:7px;line-height:1.45;padding-right:46px}
+.gc-plus{position:absolute;right:8px;bottom:8px;width:44px;height:44px;border-radius:13px;background:var(--acc);color:#fff;font-size:23px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(47,111,237,.28);touch-action:manipulation}
+.gc-plus:active{transform:scale(.94);background:#255ed6}
+.goalcard.master .gc-plus{background:#2aa163;box-shadow:0 2px 6px rgba(42,161,99,.28)}
+.lv{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:600;line-height:1.7;white-space:nowrap}
+.lv0{background:#f1f3f5;color:#a8adb5}
+.lv1{background:#f1f3f5;color:#6b7280}
+.lv2{background:#eaf0fb;color:#3b64c4}
+.lv3{background:#e6f0fe;color:#1f5fd0}
+.lv4{background:#e3f4f7;color:#0b6b7d}
+.lv5{background:#e6f6ec;color:#177a46}
+
+/* 目标详情页 */
+#goalPage{
+  position:fixed;inset:0;z-index:50;background:transparent;
+  padding:0 14px calc(28px + env(safe-area-inset-bottom));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateX(100%);visibility:hidden;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1),visibility .22s;
+}
+#goalPage.on{transform:none;visibility:visible}
+body.noscroll{overflow:hidden}
+.gp-top{display:flex;align-items:center;gap:8px;padding:6px 0;position:sticky;top:0;background:rgba(242,243,245,.86);z-index:2}
+#gpBack{min-height:44px;padding:0 8px;margin-left:-8px;font-size:15px;color:var(--acc)}
+#gpTitle{font-size:13px;color:var(--mu2)}
+.gp-hero{background:var(--cardT);border-radius:16px;padding:18px;margin:4px 0 12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.gp-hero-top{display:flex;align-items:center;gap:8px}
+.gp-name{font-size:20px;font-weight:600}
+.gp-line{font-size:12.5px;color:var(--mu);margin-top:10px}
+.gp-note{font-size:12px;color:var(--mu2);line-height:1.75;padding:14px 4px 0}
+.home-note{font-size:12px;color:var(--mu2);line-height:1.85;padding:12px 14px;margin-top:14px;background:var(--cardT);border-radius:14px}
+body.hasbg .top{background:rgba(255,255,255,.72);border-radius:14px;padding:8px 12px;margin-top:10px}
+body.hasbg .gp-note{background:rgba(255,255,255,.72);border-radius:12px;padding:10px 12px;margin-top:10px}
+body.hasbg .gp-top{background:rgba(242,243,245,.78)}
+
+/* 模块行 */
+.list{background:var(--cardT);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.mod{
+  display:grid;
+  grid-template-columns:1fr auto 58px;
+  grid-template-rows:auto auto;
+  align-items:center;
+  column-gap:10px;row-gap:2px;
+  padding:12px 12px 12px 16px;
+  border-bottom:1px solid var(--line);
+  border-left:3px solid transparent;
+}
+.mod:last-child{border-bottom:0}
+.mod.warn{background:var(--warnBg);border-left-color:#e8a33d}
+.mod-name{font-size:16px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;grid-column:1;grid-row:1}
+.mod-total{grid-column:2;grid-row:1;text-align:right;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mod-pct{font-size:11.5px;font-weight:500;color:var(--mu2)}
+.mod-meta{grid-column:1;grid-row:2;font-size:12.5px;color:var(--mu2)}
+.mod-meta.never{color:var(--mu2)}
+.mod-meta.gap{color:var(--mu)}
+.mod.warn .mod-meta.gap{color:var(--warnTx)}
+.mod-chk{grid-column:2;grid-row:2;justify-self:end}
+.plus{
+  grid-column:3;grid-row:1 / span 2;
+  width:54px;height:54px;border-radius:15px;
+  background:var(--acc);color:#fff;
+  font-size:28px;font-weight:400;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+  transition:transform .08s ease,background .15s;
+}
+.plus:active{transform:scale(.94);background:#255ed6}
+.chk{display:flex;align-items:center;gap:5px;min-height:44px;padding:0 6px;font-size:12.5px;color:var(--mu);user-select:none}
+.chk input{width:17px;height:17px;accent-color:var(--acc);margin:0}
+.chk.on{color:var(--acc)}
+
+/* 成绩输入区 */
+.score-box{
+  grid-column:1 / span 3;grid-row:3;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 0 2px;
+}
+.score-box input{
+  width:64px;height:44px;border-radius:10px;border:1px solid var(--line);
+  background:#fafbfc;text-align:center;font-size:17px;font-weight:600;
+  -moz-appearance:textfield;outline:none;
+}
+.score-box input:focus{border-color:var(--acc);background:#fff}
+.score-box input::-webkit-outer-spin-button,.score-box input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.score-box .sep{color:var(--mu2);font-size:14px}
+.score-box .ok{height:44px;padding:0 16px;border-radius:10px;background:var(--acc);color:#fff;font-size:14px;font-weight:500}
+.score-box .no{height:44px;padding:0 12px;border-radius:10px;background:#f1f3f5;font-size:14px;color:var(--mu)}
+.score-box .hint{font-size:12px;color:var(--mu2);flex-basis:100%}
+
+/* tabbar */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:flex;background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabbar button{
+  flex:1;min-height:56px;font-size:13px;color:var(--mu);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+.tabbar button.active{color:var(--acc);font-weight:600}
+.tabbar .ico{font-size:17px;line-height:1}
+
+/* 页面容器 */
+.page{display:none;padding-bottom:10px}
+.page.on{display:block}
+
+/* 历史页 */
+.hd{font-size:13px;color:var(--mu);padding:10px 4px 8px;font-variant-numeric:tabular-nums}
+.day-group{background:var(--cardT);border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.day-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:12px 16px;font-size:13px;color:var(--mu);
+  border-bottom:1px solid var(--line);
+}
+.day-head .d{font-weight:500;color:var(--tx)}
+.rec{display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .t{font-size:13px;color:var(--mu2);width:44px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.rec .n{font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec .p{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.rec .s{font-size:12px;color:var(--mu2);flex:0 0 auto;font-variant-numeric:tabular-nums}
+.rec .del{width:44px;height:52px;display:flex;align-items:center;justify-content:center;color:var(--mu2);font-size:19px;flex:0 0 auto}
+.rec .del:active{color:var(--danger)}
+.empty{padding:44px 16px;text-align:center;color:var(--mu2);font-size:14px;line-height:1.8}
+
+/* 设置页 */
+.card{background:var(--cardT);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h2{font-size:14px;margin:0 0 10px;font-weight:600;color:var(--tx)}
+.card p{margin:0;font-size:13px;color:var(--mu);line-height:1.65}
+.kv{font-size:13px;color:var(--mu);line-height:1.9;font-variant-numeric:tabular-nums}
+.snap{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.snap:first-of-type{border-top:0;padding-top:4px}
+.snap .info{flex:1;min-width:0}
+.snap .nm{font-size:14px;font-weight:500}
+.snap .sub{font-size:12px;color:var(--mu2);margin-top:2px;font-variant-numeric:tabular-nums}
+.btn{height:44px;padding:0 16px;border-radius:10px;background:var(--acc);color:#fff;font-size:14px;font-weight:500;flex:0 0 auto}
+.btn[disabled]{background:#eceef1;color:var(--mu2)}
+.field{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;padding:0 12px;font-size:15px;outline:none}
+.field:focus{border-color:var(--acc);background:#fff}
+.btn.ghost{background:#f1f3f5;color:var(--tx)}
+.btn.danger{background:#fdecea;color:var(--danger)}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(120%);
+  bottom:calc(76px + env(safe-area-inset-bottom));z-index:60;
+  width:calc(100% - 28px);max-width:520px;
+  background:#1e2126;color:#fff;border-radius:14px;
+  padding:12px 12px 12px 16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.22);
+  transition:transform .22s cubic-bezier(.2,.9,.3,1),opacity .22s;
+  opacity:0;pointer-events:none;
+}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+#toast .msg{flex:1 1 100%;min-width:0;font-size:14px;line-height:1.4}
+#toast .act{display:flex;gap:8px;width:100%;justify-content:flex-end}
+#toast.nobtn .act{display:none}
+#toast .act button{height:44px;min-width:44px;padding:0 12px;border-radius:9px;font-size:13.5px;background:rgba(255,255,255,.13);color:#fff}
+#toast .act button.undo{background:rgba(255,255,255,.9);color:#16181d;font-weight:600}
+
+/* sheet */
+#mask{position:fixed;inset:0;background:rgba(0,0,0,.34);z-index:70;opacity:0;pointer-events:none;transition:opacity .2s}
+#mask.on{opacity:1;pointer-events:auto}
+#sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;
+  background:var(--card);border-radius:18px 18px 0 0;
+  max-height:72vh;overflow:auto;
+  transform:translateY(105%);transition:transform .24s cubic-bezier(.2,.9,.3,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+#sheet.on{transform:translateY(0)}
+.sheet-head{position:sticky;top:0;background:#fff;padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.sheet-head b{font-size:15px}
+.sheet-head span{font-size:12px;color:var(--mu2)}
+.sheet-head button{font-size:14px;color:var(--acc);min-height:44px;padding-left:12px}
+.sheet-form{padding:16px}
+.sf-row{display:flex;align-items:center;gap:10px}
+.sf-row input{width:72px;height:46px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;text-align:center;font-size:17px;font-weight:600;outline:none}
+.sf-row input:focus{border-color:var(--acc);background:#fff}
+.sf-row .sep{color:var(--mu2)}
+.sf-row .btn{flex:1;margin-left:auto}
+.sf-hint{font-size:12px;color:var(--mu2);margin-top:10px}
+.rec{cursor:pointer}
+
+/* 确认层 */
+#confirm{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.34)}
+#confirm.on{display:flex}
+#confirm .box{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:320px}
+#confirm .m{font-size:15px;line-height:1.6;margin-bottom:18px;white-space:pre-line}
+#confirm .row{display:flex;gap:10px}
+#confirm .row button{flex:1;height:46px;border-radius:11px;font-size:15px}
+#confirm .row .no{background:#f1f3f5;color:var(--tx)}
+#confirm .row .yes{background:var(--acc);color:#fff;font-weight:500}
+#confirm .row .yes.danger{background:var(--danger)}
+
+/* 设置页控件 */
+#backupBar .bbar{background:#eef1f6;color:#5b6470;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.6;margin-bottom:12px}
+#backupBar .bbar.warn{background:var(--warnBg);color:var(--warnTx);border:1px solid #f0dcae}
+.ta{width:100%;border-radius:12px;border:1px solid var(--line);background:#fafbfc;padding:10px 12px;font-size:14px;line-height:1.6;font-family:inherit;outline:none;resize:vertical}
+.ta:focus{border-color:var(--acc);background:#fff}
+.btn.wide{width:100%;margin-top:10px}
+.btns{display:flex;gap:8px;margin-top:10px}
+.btns .btn{flex:1}
+.filelabel{display:flex;align-items:center;justify-content:center;cursor:pointer;background:#f1f3f5;color:var(--tx);font-size:14px;font-weight:500;border-radius:10px;height:44px}
+.filelabel input{display:none}
+.msgbox{font-size:13px;line-height:1.7;margin-top:10px;white-space:pre-line}
+.msgbox.err{color:var(--danger)}
+.msgbox.ok{color:#1a7f4b}
+.addmod{margin-top:6px;padding-top:12px;border-top:1px solid var(--line)}
+.addmod > .field{width:100%}
+.addrow{display:flex;gap:8px;align-items:center;margin-top:8px}
+.addrow label{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.addrow label input{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;text-align:center;font-size:16px;font-weight:600;outline:none}
+.addrow label input:focus{border-color:var(--acc);background:#fff}
+.addrow .btn{flex:0 0 auto}
+.mrow{padding:12px 0;border-bottom:1px solid var(--line)}
+.mrow:first-child{padding-top:2px}
+.mrow:last-of-type{border-bottom:0;padding-bottom:4px}
+.mrow-top{display:flex;gap:8px;align-items:center}
+.mrow-top .mname{flex:1;min-width:0}
+.mrow .mchk{flex:0 0 auto;font-size:12px;padding:0 2px;min-height:44px}
+.mrow-bot{display:flex;gap:8px;align-items:center;margin-top:8px}
+.mrow-bot .mini{font-size:12px;color:var(--mu);display:flex;align-items:center;gap:5px}
+.mrow-bot .mini input{flex:0 0 58px;width:58px;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;text-align:center;font-size:16px;font-weight:600;outline:none}
+.mrow-bot .mini input:focus{border-color:var(--acc);background:#fff}
+.mrow-bot .sp{flex:1}
+.iconbtn{width:44px;height:44px;border-radius:10px;background:#f1f3f5;color:var(--tx);font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.iconbtn:active{background:#e6e9ee}
+.iconbtn.off{color:#c3c8d0}
+.iconbtn.del{color:var(--danger);background:#fdecea}
+.cfground{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--mu)}
+.cfground label{display:flex;align-items:center;gap:6px}
+.cfground input{width:64px;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;text-align:center;font-size:16px;font-weight:600;outline:none}
+.cfground input:focus{border-color:var(--acc);background:#fff}
+.cfground .btn{margin-left:auto}
+.gsel{flex:1;min-width:0;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font-size:14px;padding:0 8px;outline:none;color:var(--tx);-webkit-appearance:none;appearance:none;text-align:center}
+.gsel:focus{border-color:var(--acc);background:#fff}
+.mghead{font-size:12px;color:var(--mu2);padding:14px 0 2px;font-weight:500}
+.mghead:first-child{padding-top:2px}
+.grow{padding:12px 0;border-bottom:1px solid var(--line)}
+.grow:last-of-type{border-bottom:0}
+.grow-top{display:flex;gap:8px;align-items:center}
+.grow-top .gname{flex:1;min-width:0}
+.grow-bot{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;color:var(--mu)}
+.grow-bot input{flex:0 0 86px;width:86px;height:44px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;text-align:center;font-size:16px;font-weight:600;outline:none}
+.grow-bot input:focus{border-color:var(--acc);background:#fff}
+.grow-bot .auto{margin-left:auto}
+.reminder{background:#f7f8fa;border-radius:12px;padding:12px;font-size:12.5px;line-height:1.8;white-space:pre-wrap;word-break:break-all;margin:10px 0 0;color:#3a4048;border:1px solid var(--line)}
+
+/* 背景设置 */
+.bgrow{display:flex;gap:8px}
+.bgrow .filelabel{flex:1}
+.bgpreview{display:none;margin-top:12px}
+.bgpreview.on{display:block}
+.bgthumb{width:100%;height:132px;object-fit:cover;border-radius:12px;display:block;background:#eceef1}
+.bgmeta{font-size:12px;color:var(--mu2);margin-top:7px;line-height:1.6;font-variant-numeric:tabular-nums}
+.dimrow{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--mu)}
+.dimrow input[type=range]{flex:1;min-width:0;height:44px;accent-color:var(--acc);background:transparent}
+.dimval{font-size:12px;color:var(--mu2);width:38px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* 顶部临时提示（替代原生 alert） */
+#msgbar{
+  position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));z-index:95;
+  transform:translate(-50%,-140%);opacity:0;pointer-events:none;
+  max-width:calc(100vw - 32px);
+  background:#23262c;color:#fff;font-size:13.5px;line-height:1.5;
+  padding:11px 16px;border-radius:12px;text-align:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.24);
+  transition:transform .2s ease,opacity .2s;
+}
+#msgbar.on{transform:translate(-50%,0);opacity:1}
+
+/* 存储错误条 */
+#errbar{display:none;background:#fdecea;color:#a3341f;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6;margin:0 0 12px}
+#errbar.on{display:block}
+#notice{display:none;background:#eef1f6;color:#5b6470;border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.7;margin:0 0 12px;border:1px solid #e1e6ee}
+#notice.on{display:block}
+#notice b{color:#16181d;font-weight:600}
+</style>
+</head>
+<body>
+<div id="bgLayer"><div id="bgShade"></div></div>
+<div id="wrap">
+  <div class="top">
+    <h1 id="appTitle">六级英语</h1>
+    <div class="date" id="topDate"></div>
+  </div>
+
+  <div id="errbar"></div>
+  <div id="notice"></div>
+  <div id="msgbar"></div>
+
+  <!-- 今日 -->
+  <section class="page on" id="page-today">
+    <div class="hero">
+      <div class="hero-row">
+        <div class="hero-cell">
+          <span class="lbl">今日</span>
+          <span class="num" id="numToday">0</span>
+        </div>
+        <div class="hero-cell r">
+          <span class="lbl">累计</span>
+          <span class="num" id="numTotal">0</span>
+        </div>
+      </div>
+      <div class="streak">连续 <b id="numStreak">0</b> 天</div>
+    </div>
+    <div id="goalList"></div>
+    <div class="home-note" id="homeNote"></div>
+  </section>
+
+  <!-- 历史 -->
+  <section class="page" id="page-history">
+    <div class="hd" id="histHead"></div>
+    <div id="histBody"></div>
+  </section>
+
+  <!-- 设置 -->
+  <section class="page" id="page-settings">
+    <div id="backupBar"></div>
+
+    <div class="card">
+      <h2>从备份恢复</h2>
+      <div class="kv" id="localInfo"></div>
+      <div id="snapList" style="margin-top:6px"></div>
+    </div>
+
+    <div class="card">
+      <h2>应用名称</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="titleInput" class="field" maxlength="12" placeholder="六级英语">
+        <button class="btn" id="titleSave">保存</button>
+      </div>
+      <p style="margin-top:8px">显示在首页顶部和浏览器标题，最长 12 字。改完立即生效，不影响已有记录。</p>
+    </div>
+
+    <div class="card">
+      <h2>背景</h2>
+      <div class="bgrow">
+        <label class="btn ghost filelabel" id="bgPickLabel">选图片<input type="file" id="bgPick" accept="image/*"></label>
+        <button class="btn danger" id="bgRemove">移除</button>
+      </div>
+      <div id="bgPreviewWrap" class="bgpreview">
+        <img id="bgThumb" class="bgthumb" alt="">
+        <div class="bgmeta" id="bgMeta"></div>
+      </div>
+      <div class="dimrow">
+        <span>压暗</span>
+        <input type="range" id="bgDim" min="0" max="60" step="1" value="35">
+        <span id="bgDimVal" class="dimval">35%</span>
+      </div>
+      <div class="btns">
+        <button class="btn" id="bgApply">应用</button>
+      </div>
+      <p id="bgHint">选好图会自动压缩并应用。图片单独存放，不进导出的 JSON；换设备要重新选。</p>
+    </div>
+
+    <div class="card">
+      <h2>目标管理</h2>
+      <div id="goalAdmin"></div>
+      <div class="addmod">
+        <input id="newGoalName" class="field" maxlength="20" placeholder="新目标名称，如 完形">
+        <div class="addrow">
+          <label>满值<input id="newGoalTarget" inputmode="numeric" placeholder="留空自动"></label>
+          <button class="btn" id="newGoalAdd">添加目标</button>
+        </div>
+      </div>
+      <p style="margin-top:10px">满值留空 = 该目标下每个模块练 20 次自动算。称号只看百分比：累计分 ÷ 满值，到 100% 就是「掌握」。</p>
+    </div>
+
+    <div class="card">
+      <h2>模块管理</h2>
+      <div id="modAdmin"></div>
+      <div class="addmod">
+        <input id="newName" class="field" maxlength="20" placeholder="新模块名称">
+        <div class="addrow">
+          <label>分值<input id="newPts" type="text" inputmode="numeric" placeholder="10"></label>
+          <label>满分<input id="newFull" type="text" inputmode="numeric" placeholder="0"></label>
+          <button class="btn" id="newAdd">添加</button>
+        </div>
+        <div class="addrow">
+          <label>所属目标<select id="newGid" class="gsel"></select></label>
+        </div>
+      </div>
+      <p style="margin-top:10px">满分填 0 = 纯勾选型，不显示成绩输入。上下箭头排序，删除模块不会删历史记录。</p>
+    </div>
+
+    <div class="card">
+      <h2>导入模块配置</h2>
+      <textarea id="impMods" class="ta" rows="4" placeholder="阅读 · 仔细阅读, 10, 10&#10;听力 · 长对话, 12, 8&#10;翻译, 15, 0"></textarea>
+      <p>一行一个，格式「名称, 固定分, 满分」，英文或中文逗号都行，最多 100 行。与现有模块重名的行会跳过。</p>
+      <div class="addrow" style="margin-top:10px">
+        <label>导到目标<select id="impModsGid" class="gsel"></select></label>
+      </div>
+      <button class="btn wide" id="impModsBtn">导入这些模块</button>
+      <div class="msgbox" id="impModsMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>导出全部数据</h2>
+      <div class="btns">
+        <button class="btn" id="expFile">下载 JSON 文件</button>
+        <button class="btn ghost" id="expCopy">复制到剪贴板</button>
+      </div>
+      <p id="expInfo" style="margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h2>导入全部数据</h2>
+      <textarea id="impJson" class="ta" rows="4" placeholder="粘贴之前导出的 JSON 全文"></textarea>
+      <div class="btns">
+        <button class="btn" id="impJsonBtn">覆盖导入</button>
+        <label class="btn ghost filelabel">选择文件<input type="file" id="impFile" accept=".json,application/json"></label>
+      </div>
+      <p style="margin-top:8px">导入会覆盖当前全部数据，覆盖前会自动存一份快照，可在上方「从备份恢复」找回。</p>
+    </div>
+
+    <div class="card">
+      <h2>清空所有数据</h2>
+      <p>模块恢复成预设的 8 个，记录全部删除。清空前会自动存一份快照。</p>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="wipeInput" class="field" placeholder="输入「清空」二字">
+        <button class="btn danger" id="wipeBtn" disabled>清空</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>手机每天提醒怎么设</h2>
+      <p>单文件页面在手机上关掉就没有后台，收不到推送，只能用系统日历做每天重复的事件。</p>
+      <pre class="reminder" id="reminderText"></pre>
+      <button class="btn wide" id="copyReminder">复制上面这段</button>
+    </div>
+  </section>
+</div>
+
+<div id="goalPage">
+  <div class="gp-top">
+    <button id="gpBack">‹ 返回</button>
+    <span id="gpTitle"></span>
+  </div>
+  <div id="gpHero"></div>
+  <div class="list" id="gpMods"></div>
+  <div class="gp-note" id="gpNote"></div>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="today" class="active"><span class="ico">＋</span>今日</button>
+  <button data-tab="history"><span class="ico">☰</span>历史</button>
+  <button data-tab="settings"><span class="ico">⚙</span>设置</button>
+</nav>
+
+<div id="toast">
+  <div class="msg" id="toastMsg"></div>
+  <div class="act">
+    <button id="toastFill" style="display:none">补填成绩</button>
+    <button id="toastUndo" class="undo">撤销</button>
+  </div>
+</div>
+
+<div id="mask"></div>
+<div id="sheet"></div>
+
+<div id="confirm">
+  <div class="box">
+    <div class="m" id="cfMsg"></div>
+    <div class="row">
+      <button class="no" id="cfNo">取消</button>
+      <button class="yes" id="cfYes">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ========== 常量 ========== */
+  var K = { main: 'prof.v1', bak: 'prof.v1.bak', pre: 'prof.v1.preReset' };
+  var MAX_RECORDS = 20000;
+  var LONG_PRESS_MS = 600;
+  var TOAST_MS = 8000;
+  var WEEK = ['日', '一', '二', '三', '四', '五', '六'];
+  var DEFAULT_TITLE = '六级英语';
+  var TITLE_MAX = 12;
+
+  var STATE_V = 2;
+  // 称号只看百分比（v2.1）
+  var LEVELS = [
+    { key: 'none',       name: '未开始', cls: 'lv0' },
+    { key: 'start',      name: '初学',   cls: 'lv1' },
+    { key: 'basic',      name: '入门',   cls: 'lv2' },
+    { key: 'skilled',    name: '熟练',   cls: 'lv3' },
+    { key: 'proficient', name: '精通',   cls: 'lv4' },
+    { key: 'master',     name: '掌握',   cls: 'lv5' }
+  ];
+  var TIMES_TO_FULL = 20;   // 每个模块练 20 次算满
+
+  var GOALS_SEED = [
+    { id: 'g-rd', name: '阅读', order: 1 },
+    { id: 'g-ls', name: '听力', order: 2 },
+    { id: 'g-tr', name: '翻译', order: 3 },
+    { id: 'g-wr', name: '写作', order: 4 }
+  ];
+
+  var PRESETS = [
+    { id: 'rd-careful', gid: 'g-rd', name: '仔细阅读', pts: 10, full: 10, on: true, order: 1 },
+    { id: 'rd-match',   gid: 'g-rd', name: '长篇匹配', pts: 10, full: 10, on: true, order: 2 },
+    { id: 'rd-blank',   gid: 'g-rd', name: '选词填空', pts: 10, full: 10, on: true, order: 3 },
+    { id: 'ls-long',    gid: 'g-ls', name: '长对话',   pts: 12, full: 8,  on: true, order: 4 },
+    { id: 'ls-passage', gid: 'g-ls', name: '听力篇章', pts: 12, full: 7,  on: true, order: 5 },
+    { id: 'ls-lecture', gid: 'g-ls', name: '讲座',     pts: 12, full: 10, on: true, order: 6 },
+    { id: 'trans',      gid: 'g-tr', name: '翻译',     pts: 15, full: 0,  on: true, order: 7 },
+    { id: 'write',      gid: 'g-wr', name: '写作',     pts: 15, full: 0,  on: true, order: 8 }
+  ];
+
+  /* ========== 存储后端（沙箱 iframe 里 localStorage 属性访问即抛错，需降级） ========== */
+  var store = (function () {
+    var ok = false;
+    try {
+      window.localStorage.setItem('__probe__', '1');
+      window.localStorage.removeItem('__probe__');
+      ok = true;
+    } catch (e) { ok = false; }
+    if (ok) {
+      return {
+        ok: true,
+        get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+        set: function (k, v) { window.localStorage.setItem(k, v); },
+        del: function (k) { try { window.localStorage.removeItem(k); } catch (e) {} }
+      };
+    }
+    var mem = {};
+    return {
+      ok: false,
+      get: function (k) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; },
+      set: function (k, v) { mem[k] = String(v); },
+      del: function (k) { delete mem[k]; }
+    };
+  })();
+
+  /* ========== 背景图（独立存储，绝不写进 prof.v1） ========== */
+  var BG_DB = 'prof', BG_STORE = 'bg', BG_KEY = 'bg.v1', BG_LS = 'prof.bg';
+  var bgMode = null;      // 'idb' | 'ls'
+  var bgReady = null;     // 探测+读取的 Promise
+  var bgUrlNow = null;    // 当前显示用的 url（blob: 或 data:）
+  var bgPending = null;   // 压缩好还没写库的 {blob,w,h,src}
+  var bgSaved = null;     // 已落库的 {w,h,size,mode}
+
+  function bgParams() {
+    // IndexedDB 可用：1600 / 0.72 / 600 KB；降级到 localStorage 时收紧
+    return bgMode === 'idb'
+      ? { maxEdge: 1600, quality: 0.72, limit: 600 * 1024 }
+      : { maxEdge: 800, quality: 0.6, limit: 400 * 1024 };
+  }
+  function kbText(n) {
+    if (n == null) return '—';
+    if (n < 1024) return n + ' B';
+    return n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+  }
+  function dimNow() {
+    return (state && state.ui && typeof state.ui.dim === 'number') ? state.ui.dim : 35;
+  }
+  function blobToDataURL(blob) {
+    return new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(String(fr.result || '')); };
+      fr.onerror = function () { reject(new Error('读取图片失败')); };
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  /* ---- IndexedDB ---- */
+  function idbOpenDb() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error('no_idb')); return; }
+      var req;
+      try { req = indexedDB.open(BG_DB, 1); } catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains(BG_STORE)) db.createObjectStore(BG_STORE);
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error || new Error('idb_open_failed')); };
+      req.onblocked = function () { reject(new Error('idb_blocked')); };
+    });
+  }
+  function idbRun(mode, fn) {
+    return idbOpenDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st;
+        try {
+          tx = db.transaction(BG_STORE, mode);
+          st = tx.objectStore(BG_STORE);
+        } catch (e) { try { db.close(); } catch (e2) {} reject(e); return; }
+        var out;
+        try { out = fn(st); } catch (e) { try { db.close(); } catch (e2) {} reject(e); return; }
+        tx.oncomplete = function () {
+          try { db.close(); } catch (e) {}
+          resolve(out && out.result !== undefined ? out.result : out);
+        };
+        tx.onerror = function () { try { db.close(); } catch (e) {} reject(tx.error || new Error('idb_tx_failed')); };
+        tx.onabort = function () { try { db.close(); } catch (e) {} reject(tx.error || new Error('idb_tx_abort')); };
+      });
+    });
+  }
+
+  /** 写探针：file:// 下 IndexedDB 多半被禁，探一次再决定后端 */
+  function bgModeProbe() {
+    return new Promise(function (resolve) {
+      var done = false;
+      function fin(m) { if (!done) { done = true; resolve(m); } }
+      var timer = setTimeout(function () { fin('ls'); }, 2000);
+      // 某些沙箱/WebView 把 indexedDB 定义成抛异常的 accessor，取值本身就会 throw
+      var hasIdb = false;
+      try { hasIdb = !!window.indexedDB; } catch (e) { hasIdb = false; }
+      if (!hasIdb) { clearTimeout(timer); fin('ls'); return; }
+      idbRun('readwrite', function (st) { return st.put({ t: Date.now() }, '__probe__'); })
+        .then(function () {
+          clearTimeout(timer);
+          idbRun('readwrite', function (st) { return st.delete('__probe__'); }).then(
+            function () { fin('idb'); },
+            function () { fin('ls'); }
+          );
+        })
+        .catch(function () { clearTimeout(timer); fin('ls'); });
+    });
+  }
+
+  function bgSave(blob, w, h) {
+    var ts = Date.now();
+    if (bgMode === 'idb') {
+      return idbRun('readwrite', function (st) {
+        return st.put({ blob: blob, w: w, h: h, ts: ts }, BG_KEY);
+      }).then(function () { return 'idb'; });
+    }
+    return blobToDataURL(blob).then(function (dataUrl) {
+      // 降级路径：base64 也绝不写进 prof.v1
+      store.set(BG_LS, JSON.stringify({ d: dataUrl, w: w, h: h, ts: ts }));
+      return 'ls';
+    });
+  }
+
+  function bgLoad() {
+    if (bgMode === 'idb') {
+      return idbRun('readonly', function (st) { return st.get(BG_KEY); }).then(function (rec) {
+        if (!rec || !rec.blob) return null;
+        return { url: URL.createObjectURL(rec.blob), w: rec.w, h: rec.h, size: rec.blob.size };
+      });
+    }
+    var raw = store.get(BG_LS);
+    if (!raw) return Promise.resolve(null);
+    try {
+      var o = JSON.parse(raw);
+      if (!o || !o.d) return Promise.resolve(null);
+      return Promise.resolve({
+        url: o.d, w: o.w, h: o.h,
+        size: Math.round(String(o.d).length * 0.75)
+      });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function bgRemove() {
+    var p1 = idbRun('readwrite', function (st) { return st.delete(BG_KEY); }).catch(function () {});
+    try { store.del(BG_LS); } catch (e) {}
+    return p1;
+  }
+
+  function applyBgVisual(url) {
+    var layer = document.getElementById('bgLayer');
+    var shade = document.getElementById('bgShade');
+    if (!layer || !shade) return;
+    if (url) {
+      layer.style.backgroundImage = 'url("' + url + '")';
+      layer.classList.add('on');
+      document.body.classList.add('hasbg');
+    } else {
+      layer.style.backgroundImage = '';
+      layer.classList.remove('on');
+      document.body.classList.remove('hasbg');
+    }
+    shade.style.opacity = dimNow() / 100;
+  }
+
+  /* ---- 压缩 ---- */
+  function imgSource(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        resolve({
+          draw: img, w: img.naturalWidth, h: img.naturalHeight,
+          close: function () { try { URL.revokeObjectURL(url); } catch (e) {} }
+        });
+      };
+      img.onerror = function () { try { URL.revokeObjectURL(url); } catch (e) {} reject(new Error('图片读取失败')); };
+      img.src = url;
+    });
+  }
+  function getSource(file) {
+    return new Promise(function (resolve, reject) {
+      if (window.createImageBitmap) {
+        createImageBitmap(file).then(function (bmp) {
+          resolve({
+            draw: bmp, w: bmp.width, h: bmp.height,
+            close: function () { try { bmp.close(); } catch (e) {} }
+          });
+        }).catch(function () { imgSource(file).then(resolve, reject); });
+      } else {
+        imgSource(file).then(resolve, reject);
+      }
+    });
+  }
+
+  function compressImage(file, p) {
+    return getSource(file).then(function (src) {
+      function draw(edge, q) {
+        var scale = Math.min(1, edge / Math.max(src.w, src.h));
+        var w = Math.max(1, Math.round(src.w * scale));
+        var h = Math.max(1, Math.round(src.h * scale));
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        var cx = cv.getContext('2d');
+        cx.fillStyle = '#fff';
+        cx.fillRect(0, 0, w, h);
+        cx.drawImage(src.draw, 0, 0, w, h);
+        return new Promise(function (res) {
+          cv.toBlob(function (b) { res({ blob: b, w: w, h: h }); }, 'image/jpeg', q);
+        });
+      }
+      var tries = [
+        [p.maxEdge, p.quality],
+        [p.maxEdge, 0.6],
+        [Math.round(p.maxEdge * 0.72), 0.55],
+        [Math.round(p.maxEdge * 0.5), 0.5]
+      ];
+      var i = 0;
+      function next() {
+        if (i >= tries.length) {
+          if (src.close) src.close();
+          return Promise.reject(new Error('too_large'));
+        }
+        var t = tries[i++];
+        return draw(t[0], t[1]).then(function (r) {
+          if (!r.blob) return next();
+          if (r.blob.size <= p.limit) { if (src.close) src.close(); return r; }
+          return next();
+        });
+      }
+      return next();
+    });
+  }
+
+  /* ---- 界面 ---- */
+  function renderBgSection() {
+    var wrap = document.getElementById('bgPreviewWrap');
+    if (!wrap) return;
+    var thumb = document.getElementById('bgThumb');
+    var meta = document.getElementById('bgMeta');
+    var rm = document.getElementById('bgRemove');
+    var dim = document.getElementById('bgDim');
+    var dimVal = document.getElementById('bgDimVal');
+    var has = !!(bgUrlNow || bgSaved);
+
+    wrap.classList.toggle('on', has);
+    if (has && bgUrlNow) thumb.src = bgUrlNow;
+    if (!has) thumb.removeAttribute('src');
+
+    if (bgPending) {
+      meta.innerHTML = bgPending.w + ' × ' + bgPending.h + ' · ' + kbText(bgPending.blob.size)
+        + (bgPending.src ? '（原 ' + kbText(bgPending.src) + '）' : '') + ' · 刚选好';
+    } else if (bgSaved) {
+      meta.innerHTML = bgSaved.w + ' × ' + bgSaved.h + ' · ' + kbText(bgSaved.size)
+        + ' · 存于 ' + (bgSaved.mode === 'ls' ? '本地存储（降级）' : 'IndexedDB');
+    } else {
+      meta.textContent = '';
+    }
+
+    rm.disabled = !has;
+    dim.value = String(dimNow());
+    dimVal.textContent = dimNow() + '%';
+    var shade = document.getElementById('bgShade');
+    if (shade) shade.style.opacity = dimNow() / 100;
+  }
+
+  function onBgPick(e) {
+    var f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    if (f.type && f.type.indexOf('image/') !== 0) { notify('只能选图片文件'); return; }
+
+    var wait = bgReady || Promise.resolve();
+    wait.then(function () {
+      var p = bgParams();
+      notify('正在压缩…');
+      return compressImage(f, p).then(function (r) {
+        bgPending = { blob: r.blob, w: r.w, h: r.h, src: f.size };
+        if (bgUrlNow && bgUrlNow.indexOf('blob:') === 0) {
+          try { URL.revokeObjectURL(bgUrlNow); } catch (e2) {}
+        }
+        bgUrlNow = URL.createObjectURL(r.blob);
+        applyBgVisual(bgUrlNow);
+        renderBgSection();
+        return savePendingBg();
+      }).catch(function (err) {
+        var msg = err && err.message;
+        if (msg === 'too_large') notify('压缩后仍超过 ' + Math.round(p.limit / 1024) + ' KB，换一张吧');
+        else notify('处理失败：' + (msg || '未知错误'));
+      });
+    });
+  }
+
+  function savePendingBg() {
+    if (!bgPending) return Promise.resolve(false);
+    var b = bgPending;
+    return bgSave(b.blob, b.w, b.h).then(function (mode) {
+      bgSaved = { w: b.w, h: b.h, size: b.blob.size, mode: mode };
+      bgPending = null;
+      renderBgSection();
+      notify('背景已保存' + (mode === 'ls' ? '（本地存储降级）' : ''));
+      return true;
+    }).catch(function (err) {
+      notify('背景保存失败：' + ((err && err.message) || '存储不可用') + '，换一张小点的试试');
+      return false;
+    });
+  }
+
+  function clearBgLocal() {
+    bgPending = null;
+    bgSaved = null;
+    if (bgUrlNow && bgUrlNow.indexOf('blob:') === 0) {
+      try { URL.revokeObjectURL(bgUrlNow); } catch (e) {}
+    }
+    bgUrlNow = null;
+    applyBgVisual(null);
+    renderBgSection();
+    return bgRemove();
+  }
+
+  function removeBg() {
+    var has = !!(bgUrlNow || bgSaved);
+    if (!has) { notify('当前没有背景'); return; }
+    clearBgLocal().then(function () {
+      notify('背景已移除');
+    }, function () {
+      notify('背景已移除（存储清理失败，不影响使用）');
+    });
+  }
+
+  function bindBgUI() {
+    var pick = document.getElementById('bgPick');
+    if (!pick) return;
+    pick.onchange = onBgPick;
+    document.getElementById('bgRemove').onclick = removeBg;
+    document.getElementById('bgApply').onclick = function () {
+      if (bgPending) savePendingBg();
+      else if (bgSaved) notify('背景已保存，可以直接换图或移除');
+      else notify('先选一张图片');
+    };
+    var dim = document.getElementById('bgDim');
+    dim.oninput = function () {
+      document.getElementById('bgDimVal').textContent = dim.value + '%';
+      var shade = document.getElementById('bgShade');
+      if (shade) shade.style.opacity = Number(dim.value) / 100;
+    };
+    dim.onchange = function () {
+      if (!state.ui) state.ui = {};
+      state.ui.dim = Number(dim.value) || 0;
+      saveState(state);
+    };
+  }
+
+  function initBg() {
+    bgReady = bgModeProbe().then(function (mode) {
+      bgMode = mode;
+      return bgLoad();
+    }).then(function (got) {
+      if (got && got.url) {
+        bgUrlNow = got.url;
+        bgSaved = { w: got.w, h: got.h, size: got.size, mode: bgMode };
+        applyBgVisual(bgUrlNow);
+      } else {
+        applyBgVisual(null);
+      }
+      renderBgSection();
+    }).catch(function () {
+      bgMode = bgMode || 'ls';
+      applyBgVisual(null);
+      renderBgSection();
+    });
+    return bgReady;
+  }
+
+  /* ========== 小工具 ========== */
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function uid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function fmt(n) { return Number(n).toLocaleString('zh-CN'); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function dkey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function hhmm(ts) {
+    var d = new Date(ts);
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function dayStart(ts) {
+    var d = new Date(ts);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  }
+  function shiftDay(ts, delta) {
+    var d = new Date(ts);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + delta).getTime();
+  }
+  function dayDiff(a, b) {
+    return Math.round((dayStart(a) - dayStart(b)) / 86400000);
+  }
+
+  /* ========== 存储层 ========== */
+  var memWarned = false;
+
+  function readRaw(key) {
+    return store.get(key);
+  }
+
+  function newId(prefix) {
+    return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  }
+
+  /** 目标满值：该目标下每个模块练 TIMES_TO_FULL 次 */
+  function autoTarget(s, gid) {
+    var sum = 0;
+    for (var i = 0; i < s.modules.length; i++) {
+      if (s.modules[i].gid === gid) sum += (s.modules[i].pts || 0) * TIMES_TO_FULL;
+    }
+    return sum > 0 ? sum : 100;
+  }
+
+  function findGoalIn(s, gid) {
+    for (var i = 0; i < (s.goals || []).length; i++) if (s.goals[i].id === gid) return s.goals[i];
+    return null;
+  }
+
+  /** 任何版本的数据都收敛到 v2：补 goals、补 module.gid、拆掉名字前缀 */
+  function migrate(o) {
+    if (!o || typeof o !== 'object') return null;
+    if (!Array.isArray(o.modules) || !Array.isArray(o.records)) return null;
+    var s = o;
+
+    // v2.1：称号只看百分比，cfg 已废弃；旧数据里的 days/acc 直接丢掉，不报错
+    if (s.cfg) delete s.cfg;
+    if (typeof s.title !== 'string' || !s.title) s.title = DEFAULT_TITLE;
+    if (typeof s.createdAt !== 'number') s.createdAt = Date.now();
+    if (typeof s.lastExportAt !== 'number') s.lastExportAt = 0;
+    if (!s.ui || typeof s.ui !== 'object') s.ui = {};
+    if (typeof s.ui.dim !== 'number' || s.ui.dim < 0 || s.ui.dim > 60) s.ui.dim = 35;
+    if (!Array.isArray(s.goals)) s.goals = [];
+
+    var byName = {}, maxG = 0;
+    for (var g = 0; g < s.goals.length; g++) {
+      var go = s.goals[g];
+      if (typeof go.id !== 'string' || !go.id) go.id = newId('g');
+      if (typeof go.name !== 'string' || !go.name) go.name = '未命名';
+      if (typeof go.order !== 'number') go.order = g + 1;
+      if (go.order > maxG) maxG = go.order;
+      byName[go.name] = go.id;
+    }
+
+    var maxM = 0;
+    for (var i = 0; i < s.modules.length; i++) {
+      var m = s.modules[i];
+      if (typeof m.order !== 'number') m.order = i + 1;
+      if (m.order > maxM) maxM = m.order;
+      if (m.gid && findGoalIn(s, m.gid)) continue;
+
+      // 没有归属：按「前缀 · 名称」拆出目标
+      var nm = String(m.name || '');
+      var cut = nm.indexOf('·');
+      var gname = cut > 0 ? nm.slice(0, cut).trim() : nm.trim();
+      if (cut > 0) m.name = nm.slice(cut + 1).trim();
+      if (!gname) gname = '未命名';
+      var gid = byName[gname];
+      if (!gid) {
+        gid = newId('g');
+        s.goals.push({ id: gid, name: gname, order: ++maxG, target: 0, auto: true });
+        byName[gname] = gid;
+      }
+      m.gid = gid;
+    }
+
+    for (var k = 0; k < s.goals.length; k++) {
+      var gg = s.goals[k];
+      if (typeof gg.target !== 'number' || gg.target <= 0) {
+        gg.target = autoTarget(s, gg.id);
+        gg.auto = true;
+      }
+    }
+
+    s.v = STATE_V;
+    return s;
+  }
+
+  function parseState(str) {
+    if (!str) return null;
+    var s;
+    try { s = JSON.parse(str); } catch (e) { return null; }
+    if (!s || (s.v !== 1 && s.v !== STATE_V)) return null;
+    return migrate(s);
+  }
+
+  function seed() {
+    var s = {
+      v: STATE_V,
+      createdAt: Date.now(),
+      lastExportAt: 0,
+      title: DEFAULT_TITLE,
+      ui: { dim: 35 },
+      goals: GOALS_SEED.map(function (g) {
+        return { id: g.id, name: g.name, order: g.order, target: 0, auto: true };
+      }),
+      modules: PRESETS.map(function (m) {
+        return { id: m.id, gid: m.gid, name: m.name, pts: m.pts, full: m.full, on: m.on, order: m.order };
+      }),
+      records: []
+    };
+    for (var i = 0; i < s.goals.length; i++) s.goals[i].target = autoTarget(s, s.goals[i].id);
+    return s;
+  }
+
+  function loadState() {
+    var raw = readRaw(K.main);
+    var s = parseState(raw);
+    if (s) {
+      // 老版本数据升级后要落盘，否则每次打开都要重算，且历史字段对不上
+      var rawV = 0;
+      try { rawV = Number(JSON.parse(raw).v) || 0; } catch (e) {}
+      if (rawV !== STATE_V) saveState(s);
+      return s;
+    }
+    var bak = parseState(readRaw(K.bak));
+    var bakData = null;
+    if (bak) bakData = bak;
+    var pre = readSnapshot(K.pre);
+    if (!bakData && pre) bakData = pre.data;
+    if (bakData) {
+      var fixed = migrate(bakData);
+      if (fixed) {
+        state = fixed;
+        renderAll();
+        flashErr('本地数据读取失败，已从备份恢复。请尽快导出完整数据。');
+        return fixed;
+      }
+    }
+    var fresh = seed();
+    try { store.set(K.main, JSON.stringify(fresh)); } catch (e) {
+      if (store.ok) flashErr('无法写入本地存储：' + e.message);
+    }
+    return fresh;
+  }
+
+  function readSnapshot(key) {
+    var raw = readRaw(key);
+    if (!raw) return null;
+    try {
+      var o = JSON.parse(raw);
+      if (!o || !o.data || !Array.isArray(o.data.records) || !Array.isArray(o.data.modules)) return null;
+      return { at: o.at || 0, data: o.data };
+    } catch (e) { return null; }
+  }
+
+  /** 常规写入：先把当前磁盘版本存进 bak，再写主数据 */
+  function saveState(next, opts) {
+    opts = opts || {};
+    var prevStr = readRaw(K.main);
+    if (prevStr && !opts.noBak) {
+      var prev = parseState(prevStr);
+      if (prev) {
+        try { store.set(K.bak, JSON.stringify({ at: Date.now(), data: prev })); }
+        catch (e) { /* 备份失败不阻断主流程 */ }
+      }
+    }
+    if (opts.preReset) {
+      var cur = parseState(prevStr);
+      if (cur) {
+        try { store.set(K.pre, JSON.stringify({ at: Date.now(), data: cur })); }
+        catch (e) {}
+      }
+    }
+    try {
+      store.set(K.main, JSON.stringify(next));
+      return true;
+    } catch (e) {
+      // 内存后端不会走到这里；只有真实 localStorage 配额满/被禁时才失败
+      if (!memWarned) {
+        memWarned = true;
+        flashErr('写入本地存储失败（' + e.message + '）。这次操作没有保存成功，请立即导出备份。');
+      }
+      return false;
+    }
+  }
+
+  function flashErr(msg) {
+    var el = document.getElementById('errbar');
+    el.textContent = msg;
+    el.classList.add('on');
+  }
+
+  /* ========== 派生统计（全部实时算，不缓存） ========== */
+  var state = null;
+
+  function getMod(mid) {
+    for (var i = 0; i < state.modules.length; i++) if (state.modules[i].id === mid) return state.modules[i];
+    return null;
+  }
+  function totalScore() {
+    var s = 0;
+    for (var i = 0; i < state.records.length; i++) s += state.records[i].p || 0;
+    return s;
+  }
+  function todayScore() {
+    var t = new Date(); var y = t.getFullYear(), m = t.getMonth(), d = t.getDate();
+    var s = 0;
+    for (var i = 0; i < state.records.length; i++) {
+      var r = state.records[i], rd = new Date(r.ts);
+      if (rd.getFullYear() === y && rd.getMonth() === m && rd.getDate() === d) s += r.p || 0;
+    }
+    return s;
+  }
+  function moduleTotal(mid) {
+    var s = 0;
+    for (var i = 0; i < state.records.length; i++) if (state.records[i].mid === mid) s += state.records[i].p || 0;
+    return s;
+  }
+  function daysSinceLast(mid) {
+    var best = 0;
+    for (var i = 0; i < state.records.length; i++) {
+      var r = state.records[i];
+      if (r.mid === mid && r.ts > best) best = r.ts;
+    }
+    if (!best) return null;
+    return dayDiff(Date.now(), best);
+  }
+  function consecutiveDays() {
+    var set = {};
+    for (var i = 0; i < state.records.length; i++) set[dkey(state.records[i].ts)] = 1;
+    var cursor = Date.now();
+    if (!set[dkey(cursor)]) cursor = shiftDay(cursor, -1); // 今天没记录则从昨天起算
+    var n = 0;
+    while (set[dkey(cursor)]) { n++; cursor = shiftDay(cursor, -1); }
+    return n;
+  }
+  /** 最近 5 条有成绩记录的加权正确率，不足 5 条按现有的算；无成绩返回 null */
+  function recentAcc(mid) {
+    var list = state.records.filter(function (r) { return r.mid === mid && r.tot != null; })
+      .sort(function (a, b) { return b.ts - a.ts; }).slice(0, 5);
+    if (!list.length) return null;
+    var g = 0, t = 0;
+    for (var i = 0; i < list.length; i++) { g += list[i].got || 0; t += list[i].tot || 0; }
+    if (!t) return null;
+    return Math.round(g / t * 100);
+  }
+
+  function todayRecords(mid) {
+    var now = Date.now();
+    return state.records
+      .filter(function (r) { return r.mid === mid && dayDiff(now, r.ts) === 0; })
+      .sort(function (a, b) { return b.ts - a.ts; });
+  }
+
+  /* ========== 数字滚动 ========== */
+  function setNum(el, to) {
+    var from = (el._v === undefined) ? 0 : el._v;
+    el._v = to;
+    if (el._raf) { cancelAnimationFrame(el._raf); el._raf = 0; }
+    if (from === to) { el.textContent = fmt(to); return; }
+    var t0 = performance.now(), dur = 380;
+    function step(t) {
+      var k = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt(Math.round(from + (to - from) * e));
+      if (k < 1) el._raf = requestAnimationFrame(step);
+    }
+    el._raf = requestAnimationFrame(step);
+  }
+
+  /* ========== 目标派生 ========== */
+  function sortedGoals() {
+    return state.goals.slice().sort(function (a, b) { return a.order - b.order; });
+  }
+  function getGoal(gid) {
+    for (var i = 0; i < state.goals.length; i++) if (state.goals[i].id === gid) return state.goals[i];
+    return null;
+  }
+  function goalModules(gid, onlyOn) {
+    return state.modules.filter(function (m) {
+      return m.gid === gid && (!onlyOn || m.on);
+    }).sort(function (a, b) { return a.order - b.order; });
+  }
+  function goalTotal(gid) {
+    var sum = 0;
+    for (var i = 0; i < state.records.length; i++) {
+      var r = state.records[i];
+      if (r.gid === gid || belongsTo(r.mid, gid)) sum += r.p || 0;
+    }
+    return sum;
+  }
+  function belongsTo(mid, gid) {
+    var m = getMod(mid);
+    return !!(m && m.gid === gid);
+  }
+  function goalTodayTotal(gid) {
+    var now = Date.now(), sum = 0;
+    for (var i = 0; i < state.records.length; i++) {
+      var r = state.records[i];
+      if (dayDiff(now, r.ts) === 0 && belongsTo(r.mid, gid)) sum += r.p || 0;
+    }
+    return sum;
+  }
+  /** 称号只看一个数：该目标累计分 ÷ 该目标满值 */
+  function goalLevel(gid) {
+    var g = getGoal(gid);
+    var total = goalTotal(gid);
+    var target = (g && g.target > 0) ? g.target : 1;
+    var ratio = total / target;
+    var pct = Math.round(ratio * 100);
+    var lv;
+    if (total === 0) lv = LEVELS[0];
+    else if (ratio < 0.2) lv = LEVELS[1];
+    else if (ratio < 0.45) lv = LEVELS[2];
+    else if (ratio < 0.75) lv = LEVELS[3];
+    else if (ratio < 1) lv = LEVELS[4];
+    else lv = LEVELS[5];
+    return {
+      lv: lv, total: total, target: target, ratio: ratio, pct: pct,
+      barPct: Math.min(100, Math.max(0, pct)),
+      full: total >= target
+    };
+  }
+
+  /** 模块自己的进度：满值 = 分值 × 20 */
+  function moduleLevel(m) {
+    var tot = moduleTotal(m.id);
+    var full = (m.pts || 0) * TIMES_TO_FULL;
+    var pct = full > 0 ? Math.round(tot / full * 100) : 0;
+    return { total: tot, full: full, pct: pct };
+  }
+
+  function levelChip(lv) {
+    return '<span class="lv ' + lv.cls + '">' + lv.name + '</span>';
+  }
+
+  /* ========== 渲染：首页（目标卡） ========== */
+  var ui = { tab: 'today', gid: null, openScore: null, targetRec: null, draft: null, longFired: false, toastRec: null };
+
+  function renderTop() {
+    var t = (state && state.title) ? state.title : DEFAULT_TITLE;
+    var h = document.getElementById('appTitle');
+    if (h) h.textContent = t;
+    document.title = t;
+    var mt = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (mt) mt.setAttribute('content', t);
+    var d = new Date();
+    document.getElementById('topDate').textContent =
+      (d.getMonth() + 1) + '月' + d.getDate() + '日 周' + WEEK[d.getDay()];
+  }
+
+  function renderHome() {
+    setNum(document.getElementById('numToday'), todayScore());
+    setNum(document.getElementById('numTotal'), totalScore());
+    setNum(document.getElementById('numStreak'), consecutiveDays());
+
+    var goals = sortedGoals();
+    var html = '';
+    for (var i = 0; i < goals.length; i++) {
+      var g = goals[i];
+      var st = goalLevel(g.id);
+      var quick = goalModules(g.id, true)[0] || null;
+
+      html += '<div class="goalcard' + (st.lv.key === 'master' ? ' master' : '') + '" data-gid="' + esc(g.id) + '">'
+        + '<div class="gc-top"><span class="gc-name">' + esc(g.name) + '</span>'
+        + levelChip(st.lv) + '</div>'
+        + '<div class="gc-progress"><b>' + fmt(st.total) + '</b><span> / ' + fmt(st.target) + '</span>'
+        + (st.full ? '<em class="full">已满</em>' : '') + '</div>'
+        + '<div class="gc-bar"><i style="width:' + st.barPct + '%"></i></div>'
+        + '<div class="gc-meta">' + st.pct + '% · 今日 +' + fmt(goalTodayTotal(g.id)) + '</div>'
+        + (quick ? '<button class="gc-plus" data-quick="' + esc(quick.id) + '" aria-label="给' + esc(quick.name) + '加分">+</button>' : '')
+        + '</div>';
+    }
+    if (!goals.length) html = '<div class="empty">还没有目标。去设置页加一个。</div>';
+    document.getElementById('goalList').innerHTML = html;
+
+    document.getElementById('homeNote').innerHTML =
+      '称号只看百分比：累计分 ÷ 满值<br>'
+      + '<20% 初学 · 20–45% 入门 · 45–75% 熟练 · 75–100% 精通 · 满 100% 掌握';
+  }
+
+  function renderToday() {
+    renderHome();
+    if (ui.gid) renderGoalPage();
+  }
+
+  /* ========== 渲染：目标详情 ========== */
+  function openGoal(gid) {
+    var g = getGoal(gid);
+    if (!g) return;
+    ui.gid = gid;
+    ui.openScore = null;
+    ui.targetRec = null;
+    ui.draft = null;
+    renderGoalPage();
+    document.getElementById('goalPage').classList.add('on');
+    document.body.classList.add('noscroll');
+    window.scrollTo(0, 0);
+  }
+
+  function closeGoal() {
+    ui.gid = null;
+    ui.openScore = null;
+    ui.targetRec = null;
+    ui.draft = null;
+    document.getElementById('goalPage').classList.remove('on');
+    document.body.classList.remove('noscroll');
+  }
+
+  function renderGoalPage() {
+    var g = getGoal(ui.gid);
+    if (!g) { closeGoal(); return; }
+    var st = goalLevel(g.id);
+
+    document.getElementById('gpTitle').textContent = '';
+
+    var hero = '<div class="gp-hero">'
+      + '<div class="gp-hero-top"><span class="gp-name">' + esc(g.name) + '</span>'
+      + (st.lv.key === 'none' ? '<span class="lv lv0">未开始</span>' : levelChip(st.lv)) + '</div>'
+      + '<div class="gc-progress"><b>' + fmt(st.total) + '</b><span> / ' + fmt(st.target) + '</span>'
+      + (st.full ? '<em class="full">已满</em>' : '') + '</div>'
+      + '<div class="gc-bar"><i style="width:' + st.barPct + '%"></i></div>'
+      + '<div class="gp-line">' + st.pct + '% · 今日 +' + fmt(goalTodayTotal(g.id))
+      + (st.full ? ' · 已满' : ' · 还差 ' + fmt(Math.max(0, st.target - st.total)) + ' 分') + '</div>'
+      + '</div>';
+    document.getElementById('gpHero').innerHTML = hero;
+
+    var mods = goalModules(g.id, false);
+    var html = '';
+    for (var i = 0; i < mods.length; i++) {
+      var m = mods[i];
+      if (!m.on) continue;
+      html += moduleRowHtml(m);
+    }
+    if (!html) html = '<div class="empty">这个目标下还没有启用的模块，去设置页加。</div>';
+    document.getElementById('gpMods').innerHTML = html;
+
+    document.getElementById('gpNote').textContent =
+      '满 ' + fmt(st.target) + ' 分（100%）就是「掌握」，现在 ' + st.pct + '%。';
+  }
+
+  function moduleRowHtml(m) {
+    var ml = moduleLevel(m);
+    var tot = ml.total;
+    var gap = daysSinceLast(m.id);
+    var warn = (gap !== null && gap > 3);
+    var metaCls = 'mod-meta', metaParts = [];
+    if (gap === null) { metaParts.push('未开始'); }
+    else if (gap === 0) { metaParts.push('今天已记 ' + todayRecords(m.id).length + ' 笔'); metaCls += ' gap'; }
+    else { metaParts.push(gap + ' 天前'); metaCls += ' gap'; }
+    var acc = recentAcc(m.id);
+    if (acc !== null) metaParts.push('正确率 ' + acc + '%');
+    var metaTxt = metaParts.join(' · ');
+
+    var open = (ui.openScore === m.id);
+    var gotV = '', totV = '';
+    if (open && ui.draft) { gotV = esc(ui.draft.got); totV = esc(ui.draft.tot); }
+    var fillMode = open && ui.targetRec;
+
+    var h = '<div class="mod' + (warn ? ' warn' : '') + '" data-mid="' + esc(m.id) + '">'
+      + '<div class="mod-name">' + esc(m.name) + '</div>'
+      + '<div class="mod-total">' + fmt(tot) + '<span class="mod-pct"> · ' + ml.pct + '%</span></div>'
+      + '<div class="' + metaCls + '">' + esc(metaTxt) + '</div>'
+      + '<div class="mod-chk"><label class="chk' + (open ? ' on' : '') + '">'
+      + '<input type="checkbox" data-chk="' + esc(m.id) + '"' + (open ? ' checked' : '') + '>记成绩</label></div>'
+      + '<button class="plus" data-mid="' + esc(m.id) + '" aria-label="加分">+</button>';
+    if (open) {
+      h += '<div class="score-box" data-box="' + esc(m.id) + '">'
+        + '<input type="text" inputmode="numeric" pattern="[0-9]*" name="got" placeholder="对" value="' + gotV + '">'
+        + '<span class="sep">/</span>'
+        + '<input type="text" inputmode="numeric" pattern="[0-9]*" name="tot" placeholder="' + (m.full || '总') + '" value="' + totV + '">'
+        + '<button class="ok" data-ok="' + esc(m.id) + '">' + (fillMode ? '存成绩' : '确认') + '</button>'
+        + '<button class="no" data-no="' + esc(m.id) + '">取消</button>'
+        + '<div class="hint">' + (fillMode ? '只补成绩，不再加分' : ('不填总题数则按满分 ' + (m.full || 0) + ' 记')) + '</div>'
+        + '</div>';
+    }
+    return h + '</div>';
+  }
+
+  /* ========== 渲染：历史 ========== */
+  function recLabel(r) {
+    var m = getMod(r.mid);
+    if (!m) return '（已删除模块）';
+    var g = getGoal(m.gid);
+    if (!g) return m.name;
+    return g.name === m.name ? g.name : g.name + ' · ' + m.name;
+  }
+
+  function renderHistory() {
+    var head = document.getElementById('histHead');
+    var body = document.getElementById('histBody');
+
+    if (!state.records.length) {
+      head.textContent = '共 0 条 ｜ 累计 0';
+      body.innerHTML = '<div class="empty">还没有记录。回今日页点一下加号</div>';
+      return;
+    }
+    head.textContent = '共 ' + state.records.length + ' 条 ｜ 累计 ' + fmt(totalScore());
+
+    var recs = state.records.slice().sort(function (a, b) { return b.ts - a.ts; });
+    var groups = [], cur = null;
+    for (var i = 0; i < recs.length; i++) {
+      var k = dkey(recs[i].ts);
+      if (!cur || cur.key !== k) { cur = { key: k, ts: recs[i].ts, sum: 0, list: [] }; groups.push(cur); }
+      cur.sum += recs[i].p || 0;
+      cur.list.push(recs[i]);
+    }
+
+    var html = '';
+    for (var g = 0; g < groups.length; g++) {
+      var gr = groups[g], d = new Date(gr.ts);
+      html += '<div class="day-group">'
+        + '<div class="day-head"><span class="d">' + gr.key + ' 星期' + WEEK[d.getDay()] + '</span>'
+        + '<span>当日 +' + fmt(gr.sum) + '</span></div>';
+      for (var j = 0; j < gr.list.length; j++) {
+        var r = gr.list[j];
+        html += '<div class="rec" data-rid="' + esc(r.id) + '">'
+          + '<span class="t">' + hhmm(r.ts) + '</span>'
+          + '<span class="n">' + esc(recLabel(r)) + '</span>'
+          + (r.tot ? '<span class="s">' + r.got + '/' + r.tot + '</span>' : '')
+          + '<span class="p">+' + r.p + '</span>'
+          + '<button class="del" data-del="' + esc(r.id) + '" aria-label="删除">×</button>'
+          + '</div>';
+      }
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  /* ========== 渲染：设置 ========== */
+  var REMINDER_TEXT = '标题：记熟练度\n时间：每天 21:30，提前 5 分钟提醒\n备注：打开桌面上的「熟练度」，把今天做过的点掉\n重复：每天，不设结束日期';
+
+  function renderSettings() {
+    renderLocalInfo();
+    renderBackupBar();
+    renderSnaps();
+    renderExpInfo();
+    renderGoalAdmin();
+    renderModAdmin();
+    renderReminder();
+
+    renderBgSection();
+    document.getElementById('newGoalAdd').onclick = addGoal;
+    document.getElementById('newGoalName').onkeydown = function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addGoal(); }
+    };
+
+    var inp = document.getElementById('titleInput');
+    inp.value = state.title || DEFAULT_TITLE;
+    document.getElementById('titleSave').onclick = saveTitle;
+    inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); saveTitle(); inp.blur(); } };
+
+    var wipeIn = document.getElementById('wipeInput');
+    var wipeBtn = document.getElementById('wipeBtn');
+    wipeIn.value = '';
+    wipeBtn.disabled = true;
+    wipeIn.oninput = function () { wipeBtn.disabled = wipeIn.value.trim() !== '清空'; };
+    wipeBtn.onclick = doWipe;
+
+    document.getElementById('impModsBtn').onclick = importModules;
+    document.getElementById('expFile').onclick = function () { doExport('file'); };
+    document.getElementById('expCopy').onclick = function () { doExport('copy'); };
+    document.getElementById('impJsonBtn').onclick = function () {
+      var t = document.getElementById('impJson').value.trim();
+      if (!t) { setMsg('impModsMsg', '', ''); notify('先把 JSON 粘进来'); return; }
+      doImportJson(t);
+    };
+    document.getElementById('impFile').onchange = onImportFile;
+    document.getElementById('copyReminder').onclick = function () {
+      copyText(REMINDER_TEXT).then(function (ok) {
+        toast(ok ? '提醒设置已复制' : '复制失败，请手动长按选择', null);
+      });
+    };
+    document.getElementById('newAdd').onclick = addModule;
+    document.getElementById('newName').onkeydown = function (e) { if (e.key === 'Enter') addModule(); };
+  }
+
+  function renderLocalInfo() {
+    var since = Math.floor((Date.now() - (state.createdAt || Date.now())) / 86400000);
+    document.getElementById('localInfo').innerHTML =
+      '本地数据：' + state.records.length + ' 条记录 · ' + state.modules.length + ' 个模块<br>'
+      + '累计 ' + fmt(totalScore()) + ' 分 · 已使用 ' + since + ' 天'
+      + '<br>存储：' + (store.ok ? '浏览器本地存储（正常）' : '<span style="color:#a3341f">内存临时存储（不落盘）</span>');
+  }
+
+  function renderBackupBar() {
+    var bar = document.getElementById('backupBar');
+    var txt, warn = false;
+    if (!state.lastExportAt) {
+      txt = '还没导出过备份。换手机或清缓存会全部丢失，建议现在导一次。';
+      warn = true;
+    } else {
+      var d = Math.floor((Date.now() - state.lastExportAt) / 86400000);
+      if (d >= 7) { txt = '距上次导出 ' + d + ' 天，该再导一次了。'; warn = true; }
+      else { txt = '距上次导出 ' + (d <= 0 ? '今天' : d + ' 天') + '，数据有备份。'; }
+    }
+    bar.innerHTML = '<div class="bbar' + (warn ? ' warn' : '') + '">' + esc(txt) + '</div>';
+  }
+
+  function renderExpInfo() {
+    document.getElementById('expInfo').textContent = state.lastExportAt
+      ? '上次导出：' + new Date(state.lastExportAt).toLocaleString('zh-CN', { hour12: false })
+      : '还没有导出过。';
+  }
+
+  function renderReminder() {
+    document.getElementById('reminderText').textContent = REMINDER_TEXT;
+  }
+
+  function saveTitle() {
+    var inp = document.getElementById('titleInput');
+    var v = (inp.value || '').trim();
+    if (!v) { notify('名称不能为空'); return; }
+    if (v.length > TITLE_MAX) { notify('名称最长 ' + TITLE_MAX + ' 个字'); return; }
+    if (v === state.title) return;
+    state.title = v;
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderTop();
+    toast('名称已改为「' + v + '」', null);
+  }
+
+  function snapRow(title, note, snap, key) {
+    var right = snap
+      ? '<button class="btn" data-restore="' + key + '">恢复</button>'
+      : '<button class="btn" disabled>无</button>';
+    var sub = snap
+      ? new Date(snap.at).toLocaleString('zh-CN', { hour12: false }) + ' · ' + snap.data.records.length + ' 条 · ' + snap.data.modules.length + ' 模块'
+      : '还没有这类备份';
+    return '<div class="snap"><div class="info"><div class="nm">' + title + '</div>'
+      + '<div class="sub">' + esc(sub) + '</div>'
+      + '<div class="sub" style="color:#b6bac1">' + note + '</div></div>' + right + '</div>';
+  }
+
+  function renderSnaps() {
+    var bak = readSnapshot(K.bak);
+    var pre = readSnapshot(K.pre);
+    document.getElementById('snapList').innerHTML =
+      snapRow('常规备份', '每次写入前自动保存', bak, K.bak)
+      + snapRow('清空/导入前快照', '仅在清空、导入前保存', pre, K.pre);
+    bindSnapButtons();
+  }
+
+  function bindSnapButtons() {
+    var btns = document.querySelectorAll('[data-restore]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].onclick = function () {
+        var key = this.getAttribute('data-restore');
+        var snap = readSnapshot(key);
+        if (!snap) return;
+        var when = new Date(snap.at).toLocaleString('zh-CN', { hour12: false });
+        confirmBox('用这份备份覆盖当前数据？\n\n备份时间：' + when + '\n记录 ' + snap.data.records.length + ' 条\n\n当前数据会先存进「常规备份」，可再恢复回来。', '恢复', false)
+          .then(function (ok) {
+            if (!ok) return;
+            state = snap.data;
+            if (typeof state.title !== 'string' || !state.title) state.title = DEFAULT_TITLE;
+            renderAll();
+            if (!saveState(state)) return;
+            toast('已恢复到 ' + when, null);
+          });
+      };
+    }
+  }
+
+  /* ---------- 目标管理 ---------- */
+  function renderGoalAdmin() {
+    var goals = sortedGoals();
+    var html = '';
+    for (var i = 0; i < goals.length; i++) {
+      var g = goals[i];
+      var st = goalLevel(g.id);
+      var modN = goalModules(g.id, false).length;
+      html += '<div class="grow" data-gid="' + esc(g.id) + '">'
+        + '<div class="grow-top">'
+        + '<input class="field gname" data-gk="name" maxlength="20" value="' + esc(g.name) + '">'
+        + '<button class="iconbtn del" data-gact="del" aria-label="删除目标">✕</button>'
+        + '</div>'
+        + '<div class="grow-bot"><span>累计 ' + fmt(st.total) + ' · ' + modN + ' 个模块 · '
+        + (st.lv.key === 'none' ? '未开始' : st.lv.name) + '</span></div>'
+        + '<div class="grow-bot"><label class="mini">满值<input data-gk="target" inputmode="numeric" value="' + g.target + '"></label>'
+        + '<button class="iconbtn auto" data-gact="auto" aria-label="按模块自动算">自动</button></div>'
+        + '</div>';
+    }
+    if (!goals.length) html = '<p>还没有目标，在下面加一个。</p>';
+    var box = document.getElementById('goalAdmin');
+    box.innerHTML = html;
+
+    var btns = box.querySelectorAll('[data-gact]');
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].onclick = function () {
+        var gid = this.closest('.grow').getAttribute('data-gid');
+        var act = this.getAttribute('data-gact');
+        if (act === 'del') deleteGoal(gid);
+        else if (act === 'auto') {
+          var g = getGoal(gid);
+          if (!g) return;
+          g.target = autoTarget(state, gid);
+          g.auto = true;
+          if (!saveState(state)) { state = loadState(); renderAll(); return; }
+          renderAll();
+          toast('满值已按模块重算：' + fmt(g.target), null);
+        }
+      };
+    }
+  }
+
+  function onGoalChange(e) {
+    var el = e.target;
+    var k = el && el.getAttribute ? el.getAttribute('data-gk') : null;
+    if (!k) return;
+    var row = el.closest('.grow');
+    if (!row) return;
+    var g = getGoal(row.getAttribute('data-gid'));
+    if (!g) return;
+    if (k === 'name') {
+      var v = (el.value || '').trim();
+      if (!v) { notify('目标名不能为空'); el.value = g.name; return; }
+      if (v.length > 20) { notify('目标名最长 20 字'); el.value = g.name; return; }
+      if (v === g.name) return;
+      g.name = v;
+    } else {
+      var n = Number((el.value || '').trim());
+      if (!isFinite(n) || Math.floor(n) !== n || n < 10 || n > 99999) {
+        notify('满值必须是 10–99999 的整数'); el.value = g.target; return;
+      }
+      if (n === g.target) return;
+      g.target = n;
+      g.auto = false;
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderAll();
+  }
+
+  function addGoal() {
+    var nameEl = document.getElementById('newGoalName');
+    var tEl = document.getElementById('newGoalTarget');
+    var name = (nameEl.value || '').trim();
+    if (!name) { notify('给目标起个名字'); nameEl.focus(); return; }
+    if (name.length > 20) { notify('目标名最长 20 字'); return; }
+    for (var i = 0; i < state.goals.length; i++) {
+      if (state.goals[i].name === name) { notify('已经有同名目标了'); return; }
+    }
+    var maxOrder = 0;
+    for (var j = 0; j < state.goals.length; j++) if (state.goals[j].order > maxOrder) maxOrder = state.goals[j].order;
+    var gid = newId('g');
+    var obj = { id: gid, name: name, order: maxOrder + 1, target: 0, auto: true };
+    state.goals.push(obj);
+    var tv = (tEl.value || '').trim();
+    if (tv) {
+      var n = Number(tv);
+      if (!isFinite(n) || Math.floor(n) !== n || n < 10 || n > 99999) {
+        state.goals.pop();
+        notify('满值必须是 10–99999 的整数，或者留空');
+        return;
+      }
+      obj.target = n;
+      obj.auto = false;
+    } else {
+      obj.target = autoTarget(state, gid);
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    nameEl.value = ''; tEl.value = '';
+    renderAll();
+    toast('已添加目标「' + name + '」', null);
+  }
+
+  function deleteGoal(gid) {
+    var g = getGoal(gid);
+    if (!g) return;
+    var mods = goalModules(gid, false);
+    var recN = 0;
+    for (var i = 0; i < state.records.length; i++) if (belongsTo(state.records[i].mid, gid)) recN++;
+    if (state.goals.length <= 1) { notify('至少留一个目标'); return; }
+    confirmBox('删除目标「' + g.name + '」？\n\n它的 ' + mods.length + ' 个模块会一起删掉，'
+      + recN + ' 条历史记录会保留（累计分不变），但历史里会显示「已删除模块」。', '删除', true)
+      .then(function (ok) {
+        if (!ok) return;
+        state.goals = state.goals.filter(function (x) { return x.id !== gid; });
+        state.modules = state.modules.filter(function (m) { return m.gid !== gid; });
+        if (!saveState(state)) { state = loadState(); renderAll(); return; }
+        renderAll();
+        toast('已删除目标「' + g.name + '」', null);
+      });
+  }
+
+  /* ---------- 模块管理 ---------- */
+  function sortedModules() {
+    return state.modules.slice().sort(function (a, b) { return a.order - b.order; });
+  }
+
+  function goalOptions(sel) {
+    var goals = sortedGoals(), h = '';
+    for (var i = 0; i < goals.length; i++) {
+      h += '<option value="' + esc(goals[i].id) + '"' + (goals[i].id === sel ? ' selected' : '') + '>'
+        + esc(goals[i].name) + '</option>';
+    }
+    return h;
+  }
+
+  function renderModAdmin() {
+    var goals = sortedGoals();
+    var html = '';
+    for (var g = 0; g < goals.length; g++) {
+      var goal = goals[g];
+      var mods = goalModules(goal.id, false);
+      html += '<div class="mghead">' + esc(goal.name) + ' · ' + mods.length + ' 个模块</div>';
+      if (!mods.length) html += '<p style="font-size:12.5px;color:#b6bac1;padding:4px 0">这个目标下还没有模块</p>';
+      for (var i = 0; i < mods.length; i++) {
+        var m = mods[i];
+        html += '<div class="mrow" data-id="' + esc(m.id) + '">'
+          + '<div class="mrow-top">'
+          + '<input class="field mname" data-k="name" maxlength="20" value="' + esc(m.name) + '">'
+          + '<select class="gsel" data-k="gid" style="flex:0 0 88px;width:88px">' + goalOptions(m.gid) + '</select>'
+          + '<button class="iconbtn del" data-act="del" aria-label="删除">✕</button>'
+          + '</div>'
+          + '<div class="mrow-bot">'
+          + '<label class="mini">分值<input data-k="pts" inputmode="numeric" value="' + m.pts + '"></label>'
+          + '<label class="mini">满分<input data-k="full" inputmode="numeric" value="' + m.full + '"></label>'
+          + '<label class="chk mchk' + (m.on ? ' on' : '') + '"><input type="checkbox" data-k="on"' + (m.on ? ' checked' : '') + '>启用</label>'
+          + '<span class="sp"></span>'
+          + '<button class="iconbtn' + (i === 0 ? ' off' : '') + '" data-act="up" aria-label="上移">↑</button>'
+          + '<button class="iconbtn' + (i === mods.length - 1 ? ' off' : '') + '" data-act="down" aria-label="下移">↓</button>'
+          + '</div></div>';
+      }
+    }
+    var admin = document.getElementById('modAdmin');
+    admin.innerHTML = html;
+
+    var sel = document.getElementById('newGid');
+    if (sel) {
+      var keep = sel.value;
+      sel.innerHTML = goalOptions(keep || (goals[0] && goals[0].id));
+    }
+    var sel2 = document.getElementById('impModsGid');
+    if (sel2) {
+      var keep2 = sel2.value;
+      sel2.innerHTML = goalOptions(keep2 || (goals[0] && goals[0].id));
+    }
+
+    var btns = admin.querySelectorAll('[data-act]');
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].onclick = function () {
+        var mid = this.closest('.mrow').getAttribute('data-id');
+        var act = this.getAttribute('data-act');
+        if (act === 'del') deleteModule(mid);
+        else if (act === 'up') moveModule(mid, -1);
+        else if (act === 'down') moveModule(mid, 1);
+      };
+    }
+  }
+
+  /** 改模块/目标字段（change 事件，失焦时触发） */
+  function onModChange(e) {
+    var el = e.target;
+    if (!el || !el.getAttribute) return;
+    var k = el.getAttribute('data-k');
+    if (!k) return;
+    var row = el.closest('.mrow');
+    if (!row) return;
+    var m = getMod(row.getAttribute('data-id'));
+    if (!m) return;
+
+    if (k === 'on') {
+      m.on = !!el.checked;
+    } else if (k === 'gid') {
+      var gid = el.value;
+      if (!getGoal(gid) || gid === m.gid) { el.value = m.gid; return; }
+      m.gid = gid;
+    } else if (k === 'name') {
+      var v = (el.value || '').trim();
+      if (!v) { notify('名称不能为空'); el.value = m.name; return; }
+      if (v.length > 20) { notify('名称最长 20 字'); el.value = m.name; return; }
+      if (v === m.name) return;
+      m.name = v;
+    } else {
+      var n = Number((el.value || '').trim());
+      var isInt = isFinite(n) && Math.floor(n) === n;
+      if (k === 'pts') {
+        if (!isInt || n < 1 || n > 999) { notify('固定分必须是 1–999 的整数'); el.value = m.pts; return; }
+        m.pts = n;
+      } else if (k === 'full') {
+        if (!isInt || n < 0 || n > 999) { notify('满分必须是 0–999 的整数，0 表示纯勾选型'); el.value = m.full; return; }
+        m.full = n;
+      }
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderAll();
+  }
+
+  function moveModule(mid, dir) {
+    var m = getMod(mid);
+    if (!m) return;
+    var mods = goalModules(m.gid, false);
+    var i = -1;
+    for (var j = 0; j < mods.length; j++) if (mods[j].id === mid) i = j;
+    var k = i + dir;
+    if (i < 0 || k < 0 || k >= mods.length) return;
+    var tmp = mods[i].order;
+    mods[i].order = mods[k].order;
+    mods[k].order = tmp;
+    var re = sortedModules();
+    for (var x = 0; x < re.length; x++) re[x].order = x + 1;
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderAll();
+  }
+
+  function deleteModule(mid) {
+    var m = getMod(mid);
+    if (!m) return;
+    var cnt = 0;
+    for (var i = 0; i < state.records.length; i++) if (state.records[i].mid === mid) cnt++;
+    confirmBox('删除模块「' + m.name + '」？\n\n它的 ' + cnt + ' 条历史记录会保留，累计分不变，但不再显示在打卡页。', '删除', true)
+      .then(function (ok) {
+        if (!ok) return;
+        state.modules = state.modules.filter(function (x) { return x.id !== mid; });
+        if (!saveState(state)) { state = loadState(); renderAll(); return; }
+        renderAll();
+        toast('已删除模块「' + m.name + '」', null);
+      });
+  }
+
+  function addModule() {
+    var nameEl = document.getElementById('newName');
+    var ptsEl = document.getElementById('newPts');
+    var fullEl = document.getElementById('newFull');
+    var gidEl = document.getElementById('newGid');
+    var name = (nameEl.value || '').trim();
+    if (!name) { notify('给模块起个名字'); nameEl.focus(); return; }
+    if (name.length > 20) { notify('名称最长 20 字'); return; }
+    var pts = Number((ptsEl.value || '').trim());
+    var full = (fullEl.value || '').trim() === '' ? 0 : Number(fullEl.value.trim());
+    if (!isFinite(pts) || Math.floor(pts) !== pts || pts < 1 || pts > 999) { notify('固定分必须是 1–999 的整数'); return; }
+    if (!isFinite(full) || Math.floor(full) !== full || full < 0 || full > 999) { notify('满分必须是 0–999 的整数'); return; }
+    var gid = gidEl ? gidEl.value : '';
+    if (!getGoal(gid)) { notify('先选一个所属目标'); return; }
+    var mods = goalModules(gid, false);
+    for (var i = 0; i < mods.length; i++) {
+      if (mods[i].name === name) { notify('这个目标下已经有同名模块了'); return; }
+    }
+    var maxOrder = 0;
+    for (var j = 0; j < state.modules.length; j++) if (state.modules[j].order > maxOrder) maxOrder = state.modules[j].order;
+    state.modules.push({
+      id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4),
+      gid: gid, name: name, pts: pts, full: full, on: true, order: maxOrder + 1
+    });
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    nameEl.value = ''; ptsEl.value = ''; fullEl.value = '';
+    renderAll();
+    toast('已添加模块「' + name + '」', null);
+  }
+
+  /* ---------- 模块配置文本导入 ---------- */
+  function setMsg(id, text, cls) {
+    var el = document.getElementById(id);
+    el.textContent = text || '';
+    el.className = 'msgbox' + (cls ? ' ' + cls : '');
+  }
+
+  function parseModuleText(text) {
+    var lines = String(text || '').split(/\r?\n/);
+    var items = [], errs = [], used = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var raw = lines[i].trim();
+      if (!raw || raw.charAt(0) === '#') continue;
+      used++;
+      var no = i + 1;
+      var cols = raw.replace(/，/g, ',').replace(/,/g, '\u0001').split('\u0001');
+      for (var c = 0; c < cols.length; c++) cols[c] = cols[c].trim();
+      if (cols.length !== 3) {
+        errs.push('第 ' + no + ' 行：需要三列（名称, 固定分, 满分），现在是 ' + cols.length + ' 列');
+        continue;
+      }
+      var name = cols[0], ptsS = cols[1], fullS = cols[2];
+      if (!name) { errs.push('第 ' + no + ' 行：名称不能为空'); continue; }
+      if (name.length > 20) { errs.push('第 ' + no + ' 行：名称超过 20 字'); continue; }
+      if (!/^\d+$/.test(ptsS)) { errs.push('第 ' + no + ' 行：固定分必须是整数'); continue; }
+      var pts = Number(ptsS);
+      if (pts < 1 || pts > 999) { errs.push('第 ' + no + ' 行：固定分必须在 1–999 之间'); continue; }
+      if (!/^\d+$/.test(fullS)) { errs.push('第 ' + no + ' 行：满分必须是整数'); continue; }
+      var full = Number(fullS);
+      if (full < 0 || full > 999) { errs.push('第 ' + no + ' 行：满分必须在 0–999 之间'); continue; }
+      items.push({ name: name, pts: pts, full: full });
+    }
+    return { items: items, errs: errs, used: used };
+  }
+
+  function importModules() {
+    var text = document.getElementById('impMods').value;
+    if (!text.trim()) { setMsg('impModsMsg', '先粘贴几行模块配置', 'err'); return; }
+    var r = parseModuleText(text);
+    if (r.used > 100) { setMsg('impModsMsg', '最多 100 行，现在 ' + r.used + ' 行，整批不导入', 'err'); return; }
+    if (r.errs.length) {
+      setMsg('impModsMsg', '整批未导入，共 ' + r.errs.length + ' 处问题：\n' + r.errs.slice(0, 8).join('\n')
+        + (r.errs.length > 8 ? '\n……还有 ' + (r.errs.length - 8) + ' 处' : ''), 'err');
+      return;
+    }
+    var gidSel = document.getElementById('impModsGid');
+    var gid = gidSel ? gidSel.value : '';
+    if (!getGoal(gid)) { setMsg('impModsMsg', '先选一个目标', 'err'); return; }
+    var maxOrder = 0;
+    for (var j = 0; j < state.modules.length; j++) if (state.modules[j].order > maxOrder) maxOrder = state.modules[j].order;
+    var added = 0, skipped = [];
+    for (var i = 0; i < r.items.length; i++) {
+      var it = r.items[i], dup = false;
+      for (var k = 0; k < state.modules.length; k++) {
+        if (state.modules[k].gid === gid && state.modules[k].name === it.name) { dup = true; break; }
+      }
+      if (dup) { skipped.push(it.name); continue; }
+      maxOrder++;
+      state.modules.push({
+        id: 'imp' + Date.now().toString(36) + '_' + i,
+        gid: gid, name: it.name, pts: it.pts, full: it.full, on: true, order: maxOrder
+      });
+      added++;
+    }
+    if (!added) {
+      setMsg('impModsMsg', '全部重名，没有新增：' + skipped.join('、'), 'err');
+      return;
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    document.getElementById('impMods').value = '';
+    renderToday();
+    renderModAdmin();
+    setMsg('impModsMsg', '已新增 ' + added + ' 个模块'
+      + (skipped.length ? '；重名跳过：' + skipped.join('、') : ''), 'ok');
+    toast('已导入 ' + added + ' 个模块', null);
+  }
+
+  /* ---------- 导出 ---------- */
+  function exportJsonText() {
+    return JSON.stringify(state, null, 2);
+  }
+
+  /** 导出内容的 lastExportAt 就是本次导出时间；持久化只在成功后写 */
+  function doExport(kind) {
+    var at = Date.now();
+    var text = JSON.stringify(Object.assign({}, state, { lastExportAt: at }), null, 2);
+
+    function commit() {
+      state.lastExportAt = at;
+      saveState(state);
+      renderBackupBar();
+      renderExpInfo();
+    }
+
+    if (kind === 'file') {
+      var d = new Date();
+      var fn = '熟练度数据_' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '.json';
+      try {
+        var blob = new Blob([text], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fn;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1200);
+        commit();
+        toast('已下载 ' + fn, null);
+        return;
+      } catch (e) {
+        copyText(text).then(function (ok) {
+          if (ok) { commit(); toast('下载失败，已复制到剪贴板', null); }
+          else toast('下载失败：' + e.message, null);
+        });
+        return;
+      }
+    }
+
+    copyText(text).then(function (ok) {
+      if (ok) { commit(); toast('已复制全部数据（' + text.length + ' 字符）', null); }
+      else toast('复制失败，请用「下载 JSON 文件」', null);
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; })
+        .catch(function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      var ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ---------- 导入 JSON ---------- */
+  function validateImport(o) {
+    if (!o || typeof o !== 'object') return '不是合法的 JSON 对象';
+    if (o.v !== 1 && o.v !== STATE_V) return '版本号 v 必须是 1 或 ' + STATE_V + '（当前：' + o.v + '）';
+    if (!Array.isArray(o.modules)) return 'modules 不是数组';
+    if (!Array.isArray(o.records)) return 'records 不是数组';
+    for (var i = 0; i < o.modules.length; i++) {
+      var m = o.modules[i];
+      if (!m || typeof m.id !== 'string' || typeof m.name !== 'string') return '第 ' + (i + 1) + ' 个模块缺少 id 或 name';
+      if (typeof m.pts !== 'number' || typeof m.full !== 'number') return '第 ' + (i + 1) + ' 个模块的 pts / full 不是数字';
+    }
+    for (var j = 0; j < o.records.length; j++) {
+      var r = o.records[j];
+      if (!r || typeof r.id !== 'string') return '第 ' + (j + 1) + ' 条记录缺少 id';
+      if (typeof r.ts !== 'number' || typeof r.mid !== 'string' || typeof r.p !== 'number') {
+        return '第 ' + (j + 1) + ' 条记录缺少 ts / mid / p';
+      }
+    }
+    return null;
+  }
+
+  function doImportJson(text) {
+    var obj;
+    try { obj = JSON.parse(text); } catch (e) { notify('JSON 解析失败：' + e.message); return; }
+    var err = validateImport(obj);
+    if (err) { notify('这份数据不能导入：\n\n' + err + '\n\n当前数据没有变动。'); return; }
+    confirmBox('用这份数据覆盖当前全部数据？\n\n模块 ' + obj.modules.length + ' 个\n记录 ' + obj.records.length + ' 条\n\n当前数据会先存进「清空/导入前快照」。\n背景图不在数据里，需要重新选。', '覆盖导入', true)
+      .then(function (ok) {
+        if (!ok) return;
+        var migrated = migrate(obj);
+        if (!migrated) { notify('数据迁移失败，当前数据没有变动。'); return; }
+        obj = migrated;
+        var prev = state;
+        state = obj;
+        if (!saveState(state, { preReset: true })) { state = prev; renderAll(); return; }
+        document.getElementById('impJson').value = '';
+        renderAll();
+        setTab('today');
+        toast('已导入 ' + obj.records.length + ' 条记录', null);
+      });
+  }
+
+  function onImportFile(e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () { doImportJson(String(fr.result || '')); };
+    fr.onerror = function () { notify('文件读取失败'); };
+    fr.readAsText(f);
+    e.target.value = '';
+  }
+
+  /* ---------- 清空 ---------- */
+  function doWipe() {
+    var v = document.getElementById('wipeInput').value.trim();
+    if (v !== '清空') { notify('请输入「清空」两个字'); return; }
+    confirmBox('清空所有记录和自定义模块？\n\n模块会恢复成预设的 8 个，' + state.records.length + ' 条记录全部删除。\n清空前会自动存一份快照，可在「从备份恢复」找回。', '确认清空', true)
+      .then(function (ok) {
+        if (!ok) return;
+        var t = state.title, created = state.createdAt;
+        state = seed();
+        state.title = t || DEFAULT_TITLE;
+        state.createdAt = created || Date.now();
+        if (!saveState(state, { preReset: true })) { state = loadState(); renderAll(); return; }
+        clearBgLocal();
+        renderAll();
+        setTab('today');
+        toast('已清空，可从头开始', null);
+      });
+  }
+
+  /* ========== 渲染：总控 ========== */
+  function renderAll() {
+    renderTop();
+    renderToday();
+    renderHistory();
+    renderSettings();
+  }
+
+  function setTab(name) {
+    closeGoal();
+    ui.tab = name;
+    var pages = document.querySelectorAll('.page');
+    for (var i = 0; i < pages.length; i++) pages[i].classList.remove('on');
+    document.getElementById('page-' + name).classList.add('on');
+
+    var tabs = document.querySelectorAll('.tabbar button');
+    for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-tab') === name);
+    if (name === 'today') renderToday();
+    if (name === 'history') renderHistory();
+    if (name === 'settings') renderSettings();
+    window.scrollTo(0, 0);
+  }
+
+  /* ========== 危险操作确认 ========== */
+  var cfResolve = null;
+  function confirmBox(msg, yesText, danger) {
+    var el = document.getElementById('confirm');
+    document.getElementById('cfMsg').textContent = msg;
+    var yes = document.getElementById('cfYes');
+    yes.textContent = yesText || '确定';
+    yes.classList.toggle('danger', !!danger);
+    el.classList.add('on');
+    return new Promise(function (res) { cfResolve = res; });
+  }
+  function closeConfirm(v) {
+    document.getElementById('confirm').classList.remove('on');
+    if (cfResolve) { var r = cfResolve; cfResolve = null; r(v); }
+  }
+  document.getElementById('cfNo').onclick = function () { closeConfirm(false); };
+  document.getElementById('cfYes').onclick = function () { closeConfirm(true); };
+
+  /* ========== 加分 / 补填 / 删除 ========== */
+  function addPoint(mid, score) {
+    var m = getMod(mid);
+    if (!m) return;
+    if (state.records.length >= MAX_RECORDS) {
+      flashErr('记录已达 ' + MAX_RECORDS + ' 条上限，请先导出后清理，暂时不能继续写入。');
+      return;
+    }
+    var rec = {
+      id: uid(),
+      ts: Date.now(),
+      mid: mid,
+      p: m.pts,
+      got: score ? score.got : null,
+      tot: score ? score.tot : null
+    };
+    state.records.push(rec);
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderToday();
+    renderHistory();
+    toast(m.name + ' +' + rec.p + '，今日 +' + todayScore(), rec);
+  }
+
+  function patchScore(recId, got, tot) {
+    for (var i = 0; i < state.records.length; i++) {
+      if (state.records[i].id === recId) {
+        state.records[i].got = got;
+        state.records[i].tot = tot;
+        break;
+      }
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderToday();
+    renderHistory();
+    toast('已记录成绩 ' + got + '/' + tot + '，分数不变', null);
+  }
+
+  function deleteRecord(recId, quiet) {
+    for (var i = 0; i < state.records.length; i++) {
+      if (state.records[i].id === recId) { state.records.splice(i, 1); break; }
+    }
+    if (!saveState(state)) { state = loadState(); renderAll(); return; }
+    renderToday();
+    renderHistory();
+    renderSettings();
+    if (!quiet) toast('已删除一条记录', null);
+  }
+
+  /* ========== toast ========== */
+  var toastTimer = 0;
+  function toast(msg, rec) {
+    var el = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    ui.toastRec = rec;
+    var fillBtn = document.getElementById('toastFill');
+    if (rec) {
+      var m = getMod(rec.mid);
+      var canFill = m && m.full > 0;
+      fillBtn.style.display = canFill ? 'block' : 'none';
+      document.getElementById('toastUndo').style.display = 'block';
+    } else {
+      fillBtn.style.display = 'none';
+      document.getElementById('toastUndo').style.display = 'none';
+    }
+    el.classList.toggle('nobtn', !rec);
+    el.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(closeToast, TOAST_MS);
+  }
+  function closeToast() {
+    clearTimeout(toastTimer);
+    ui.toastRec = null;
+    document.getElementById('toast').classList.remove('on');
+  }
+
+  document.getElementById('toastUndo').onclick = function () {
+    var rec = ui.toastRec;
+    if (!rec) return;
+    closeToast();
+    deleteRecord(rec.id, true);
+    toast('已撤销：' + (getMod(rec.mid) ? getMod(rec.mid).name : '') + ' +' + rec.p, null);
+  };
+
+  document.getElementById('toastFill').onclick = function () {
+    var rec = ui.toastRec;
+    if (!rec) return;
+    closeToast();
+    ui.openScore = rec.mid;
+    ui.targetRec = rec.id;
+    ui.draft = { got: rec.got == null ? '' : String(rec.got), tot: rec.tot == null ? '' : String(rec.tot) };
+    renderToday();
+    focusScoreBox(rec.mid);
+  };
+
+  /* ========== 顶部临时提示（替代原生 alert，WebView 里不会被拦） ========== */
+  var msgTimer = 0;
+  function notify(msg) {
+    var el = document.getElementById('msgbar');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('on');
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(function () { el.classList.remove('on'); }, 4200);
+  }
+
+  /* ========== 今日页交互 ========== */
+  var press = { timer: 0, mid: null, x: 0, y: 0 };
+
+  function onPlusDown(e) {
+    var btn = e.target.closest ? e.target.closest('.plus') : null;
+    if (!btn) return;
+    press.mid = btn.getAttribute('data-mid');
+    press.x = e.clientX; press.y = e.clientY;
+    clearTimeout(press.timer);
+    press.timer = setTimeout(function () {
+      press.timer = 0;
+      ui.longFired = true;
+      // 若在按钮外松手，click 不会落在 + 上，标记要自己过期，否则吞掉下一次正常点击
+      setTimeout(function () { ui.longFired = false; }, 800);
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+      openDaySheet(press.mid);
+    }, LONG_PRESS_MS);
+  }
+  function onPointerMove(e) {
+    if (!press.timer) return;
+    if (Math.abs(e.clientX - press.x) > 10 || Math.abs(e.clientY - press.y) > 10) {
+      clearTimeout(press.timer); press.timer = 0;
+    }
+  }
+  function onPointerEnd() {
+    if (press.timer) { clearTimeout(press.timer); press.timer = 0; }
+  }
+
+  function draftFromDom() {
+    if (!ui.openScore) return;
+    var box = document.querySelector('.score-box[data-box="' + ui.openScore + '"]');
+    if (!box) return;
+    var g = box.querySelector('[name="got"]'), t = box.querySelector('[name="tot"]');
+    ui.draft = { got: g ? g.value : '', tot: t ? t.value : '' };
+  }
+
+  function focusScoreBox(mid) {
+    var box = document.querySelector('.score-box[data-box="' + mid + '"]');
+    if (!box) return;
+    var g = box.querySelector('[name="got"]');
+    if (g) { try { g.focus(); g.select(); } catch (e) {} }
+  }
+
+  function onTodayClick(e) {
+    var t = e.target;
+
+    var chk = t.closest ? t.closest('input[data-chk]') : null;
+    if (chk) {
+      var mid0 = chk.getAttribute('data-chk');
+      draftFromDom();
+      if (chk.checked) {
+        ui.openScore = mid0; ui.targetRec = null; ui.draft = null;
+        renderToday(); focusScoreBox(mid0);
+      } else {
+        ui.openScore = null; ui.targetRec = null; ui.draft = null;
+        renderToday();
+      }
+      return;
+    }
+
+    var noBtn = t.closest ? t.closest('[data-no]') : null;
+    if (noBtn) {
+      ui.openScore = null; ui.targetRec = null; ui.draft = null;
+      renderToday();
+      return;
+    }
+
+    var okBtn = t.closest ? t.closest('[data-ok]') : null;
+    if (okBtn) {
+      var mid = okBtn.getAttribute('data-ok');
+      commitScore(mid);
+      return;
+    }
+
+    var plus = t.closest ? t.closest('.plus') : null;
+    if (plus) {
+      if (ui.longFired) { ui.longFired = false; return; }  // 长按已处理，吞掉这次 click
+      draftFromDom();
+      addPoint(plus.getAttribute('data-mid'), null);
+      return;
+    }
+
+    // 点空白处收起成绩区（但不动 draft，避免误清）
+    var inMod = t.closest ? t.closest('.mod') : null;
+    if (!inMod && ui.openScore) { draftFromDom(); }
+  }
+
+  function commitScore(mid) {
+    var m = getMod(mid);
+    var box = document.querySelector('.score-box[data-box="' + mid + '"]');
+    if (!m || !box) return;
+    var gv = box.querySelector('[name="got"]').value.trim();
+    var tv = box.querySelector('[name="tot"]').value.trim();
+
+    var got = gv === '' ? null : Number(gv);
+    var tot = tv === '' ? (m.full || 0) : Number(tv);
+
+    if (got === null) { notify('请填对了几题'); return; }
+    if (!isFinite(got) || !isFinite(tot) || Math.floor(got) !== got || Math.floor(tot) !== tot || got < 0 || tot < 1) {
+      notify('只能是整数，总题数至少 1'); return;
+    }
+    if (got > tot) { notify('对题数不能大于总题数'); return; }
+
+    ui.openScore = null;
+    var target = ui.targetRec;
+    ui.targetRec = null;
+    ui.draft = null;
+
+    if (target) patchScore(target, got, tot);
+    else addPoint(mid, { got: got, tot: tot });
+  }
+
+  /* ========== 当日记录 sheet ========== */
+  function openDaySheet(mid) {
+    var m = getMod(mid);
+    if (!m) return;
+    var list = todayRecords(mid);
+    var html = '<div class="sheet-head"><b>' + esc(m.name) + '</b>'
+      + '<span>' + list.length + ' 笔</span>'
+      + '<button id="sheetClose">关闭</button></div>';
+    if (!list.length) {
+      html += '<div class="empty">今天还没有记录</div>';
+    } else {
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i];
+        html += '<div class="rec" data-rid="' + esc(r.id) + '">'
+          + '<span class="t">' + hhmm(r.ts) + '</span>'
+          + '<span class="n">' + (r.tot ? '成绩 ' + r.got + '/' + r.tot : '纯加分') + '</span>'
+          + '<span class="p">+' + r.p + '</span>'
+          + '<button class="del" data-sheetdel="' + esc(r.id) + '">×</button>'
+          + '</div>';
+      }
+    }
+    var sheet = document.getElementById('sheet');
+    sheet.innerHTML = html;
+    sheet.classList.add('on');
+    document.getElementById('mask').classList.add('on');
+    document.getElementById('sheetClose').onclick = closeSheet;
+
+    var dels = sheet.querySelectorAll('[data-sheetdel]');
+    for (var d = 0; d < dels.length; d++) {
+      dels[d].onclick = function () {
+        var rid = this.getAttribute('data-sheetdel');
+        var self = this;
+        confirmBox('删除这一条记录？累计分同时减掉。', '删除', true).then(function (ok) {
+          if (!ok) return;
+          deleteRecord(rid, true);
+          self.closest('.rec').remove();
+          var left = document.querySelectorAll('#sheet [data-sheetdel]').length;
+          var cnt = document.querySelector('#sheet .sheet-head span');
+          if (cnt) cnt.textContent = left + ' 笔';
+          if (left === 0) {
+            var sh = document.getElementById('sheet');
+            var d = document.createElement('div');
+            d.className = 'empty';
+            d.textContent = '今天还没有记录';
+            sh.appendChild(d);
+          }
+          if (ui.toastRec && ui.toastRec.id === rid) closeToast();
+          toast('已删除一条记录', null);
+        });
+      };
+    }
+  }
+  /** 历史页点某条 → 改成绩（PATCH 原记录，不动分值） */
+  function openRecSheet(rid) {
+    var rec = null;
+    for (var i = 0; i < state.records.length; i++) if (state.records[i].id === rid) rec = state.records[i];
+    if (!rec) return;
+    var m = getMod(rec.mid);
+    var editable = m && m.full > 0;
+    var gotV = rec.got == null ? '' : rec.got;
+    var totV = rec.tot == null ? '' : rec.tot;
+
+    var html = '<div class="sheet-head"><b>' + esc(m ? recLabel(rec) : '已删除模块') + '</b>'
+      + '<span>' + hhmm(rec.ts) + ' · +' + rec.p + '</span>'
+      + '<button id="sheetClose">关闭</button></div>';
+
+    if (!editable) {
+      html += '<div class="empty">这个模块是纯勾选型（满分为 0），<br>没有成绩可填。</div>';
+    } else {
+      html += '<div class="sheet-form">'
+        + '<div class="sf-row">'
+        + '<input type="text" inputmode="numeric" pattern="[0-9]*" id="rfGot" placeholder="对" value="' + gotV + '">'
+        + '<span class="sep">/</span>'
+        + '<input type="text" inputmode="numeric" pattern="[0-9]*" id="rfTot" placeholder="' + (m.full || '总') + '" value="' + totV + '">'
+        + '<button class="btn" id="rfSave">保存</button>'
+        + '</div>'
+        + '<div class="sf-hint">只改成绩，已经加过的 ' + rec.p + ' 分不变。</div>'
+        + '</div>';
+    }
+
+    var sheet = document.getElementById('sheet');
+    sheet.innerHTML = html;
+    sheet.classList.add('on');
+    document.getElementById('mask').classList.add('on');
+    document.getElementById('sheetClose').onclick = closeSheet;
+
+    if (editable) {
+      document.getElementById('rfSave').onclick = function () {
+        var gv = document.getElementById('rfGot').value.trim();
+        var tv = document.getElementById('rfTot').value.trim();
+        var got = gv === '' ? null : Number(gv);
+        var tot = tv === '' ? (m.full || 0) : Number(tv);
+        if (got === null) { notify('请填对了几题'); return; }
+        if (!isFinite(got) || !isFinite(tot) || Math.floor(got) !== got || Math.floor(tot) !== tot || got < 0 || tot < 1) {
+          notify('只能是整数，总题数至少 1'); return;
+        }
+        if (got > tot) { notify('对题数不能大于总题数'); return; }
+        closeSheet();
+        patchScore(rec.id, got, tot);
+      };
+    }
+  }
+
+  function closeSheet() {
+    document.getElementById('sheet').classList.remove('on');
+    document.getElementById('mask').classList.remove('on');
+  }
+  document.getElementById('mask').onclick = closeSheet;
+
+  /* ========== 启动 ========== */
+  function boot() {
+    if (!store.ok) {
+      var n = document.getElementById('notice');
+      n.innerHTML = '<b>当前是预览沙箱，浏览器禁止了本地存储</b><br>'
+        + '页面可以照常点，但刷新或关闭后数据不会保留。'
+        + '日常使用请用浏览器直接打开 index.html，或等阶段 4 部署到线上。';
+      n.classList.add('on');
+    }
+    state = loadState();
+    if (!state) state = seed();
+    renderAll();
+    setTab('today');
+    bindBgUI();
+    initBg();
+
+    document.getElementById('gpBack').onclick = closeGoal;
+    document.getElementById('goalList').addEventListener('click', function (e) {
+      var q = e.target.closest ? e.target.closest('[data-quick]') : null;
+      if (q) {
+        // 卡内加号：就地加分，不要进详情
+        e.stopPropagation();
+        e.preventDefault();
+        ui.longFired = false;
+        addPoint(q.getAttribute('data-quick'), null);
+        return;
+      }
+      var card = e.target.closest ? e.target.closest('[data-gid]') : null;
+      if (card) openGoal(card.getAttribute('data-gid'));
+    });
+
+    var ml = document.getElementById('gpMods');
+    ml.addEventListener('pointerdown', onPlusDown, { passive: true });
+    ml.addEventListener('pointermove', onPointerMove, { passive: true });
+    ml.addEventListener('pointerup', onPointerEnd, { passive: true });
+    ml.addEventListener('pointercancel', onPointerEnd, { passive: true });
+    // 手指移出容器再松手时容器收不到 pointerup，兜底清定时器
+    document.addEventListener('pointerup', onPointerEnd, { passive: true });
+    document.addEventListener('pointercancel', onPointerEnd, { passive: true });
+    ml.addEventListener('contextmenu', function (e) {
+      if (e.target.closest && e.target.closest('.plus')) e.preventDefault();
+    });
+    ml.addEventListener('click', onTodayClick);
+
+    var tabs = document.querySelectorAll('.tabbar button');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].onclick = function () { setTab(this.getAttribute('data-tab')); };
+    }
+
+    document.getElementById('modAdmin').addEventListener('change', onModChange);
+    document.getElementById('goalAdmin').addEventListener('change', onGoalChange);
+
+    var hb = document.getElementById('histBody');
+    hb.addEventListener('click', function (e) {
+      var del = e.target.closest ? e.target.closest('[data-del]') : null;
+      var row = e.target.closest ? e.target.closest('.rec') : null;
+      if (!del) {
+        if (row) openRecSheet(row.getAttribute('data-rid'));
+        return;
+      }
+      var rid = del.getAttribute('data-del');
+      confirmBox('删除这一条记录？累计分同时减掉。', '删除', true).then(function (ok) {
+        if (!ok) return;
+        if (ui.toastRec && ui.toastRec.id === rid) closeToast();
+        deleteRecord(rid, true);
+        toast('已删除一条记录', null);
+      });
+    });
+
+    // 自检
+    if (/[?&]selftest=1/.test(location.search)) {
+      var pre = document.createElement('pre');
+      pre.style.cssText = 'white-space:pre-wrap;font-size:12px;background:#fff;border-radius:12px;padding:10px;margin:0 0 10px';
+      var lvTxt = sortedGoals().map(function (g) {
+        var st = goalLevel(g.id);
+        return g.name + '（' + st.lv.name + ' ' + st.total + '/' + st.target + '）';
+      }).join(' · ');
+      pre.textContent = '目标 ' + state.goals.length + ' 个 · 模块 ' + state.modules.length + ' 个 · 记录 '
+        + state.records.length + ' 条 · 累计 ' + totalScore() + ' · 今日 ' + todayScore()
+        + ' · 连续 ' + consecutiveDays() + ' 天\n' + lvTxt;
+      document.getElementById('errbar').parentNode.insertBefore(pre, document.getElementById('errbar').nextSibling);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+</body>
+</html>
