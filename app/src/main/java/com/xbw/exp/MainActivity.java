@@ -42,6 +42,8 @@ public class MainActivity extends Activity {
 
         webView = new WebView(this);
         setContentView(webView);
+        // 暗色 App：WebView 默认白底，冷启动会先闪一下白屏
+        webView.setBackgroundColor(0xFF0A0A0A);
 
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
@@ -81,6 +83,12 @@ public class MainActivity extends Activity {
         });
 
         webView.addJavascriptInterface(new Bridge(), "XbwAndroid");
+
+        // 真机排查：chrome://inspect 需要它，只在 debug 包打开
+        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
         webView.loadUrl(START_URL);
 
         ReminderReceiver.schedule(this);
@@ -116,13 +124,22 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * 单页应用没有历史记录，canGoBack() 永远是 false。
+     * 先问页面有没有要关的层（确认框 / 底栏 / 目标页 / 非今日 tab），
+     * 页面返回 true 表示已消费，否则退出。
+     */
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
+        if (webView == null) {
             super.onBackPressed();
+            return;
         }
+        webView.evaluateJavascript(
+                "(function(){try{return window.__xbwBack?window.__xbwBack():false}catch(e){return false}})()",
+                value -> {
+                    if (!"true".equals(value)) finish();
+                });
     }
 
     @Override
@@ -138,8 +155,24 @@ public class MainActivity extends Activity {
     private class Bridge {
 
         @JavascriptInterface
-        public void toast(String msg) {
-            Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+        public void toast(final String msg) {
+            // 桥方法跑在没有 Looper 的 JavaBridge 线程，直接 Toast 会抛
+            // Can't create handler inside thread that has not called Looper.prepare()
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        /** 页面每次数据变化后把今日进度写过来，提醒通知要用 */
+        @JavascriptInterface
+        public void syncToday(String json) {
+            try {
+                getSharedPreferences("xbw", MODE_PRIVATE).edit().putString("today", json).apply();
+            } catch (Exception e) {
+                // 写不进去就退回通用文案，不影响主流程
+            }
         }
 
         /** 立刻发一条通知，用于验证每日提醒链路。 */
@@ -170,6 +203,7 @@ public class MainActivity extends Activity {
                     return "已保存到 下载/" + filename;
                 }
                 File dir = getExternalFilesDir(null);
+                if (dir == null) dir = getFilesDir();
                 File f = new File(dir, filename);
                 FileOutputStream fos = new FileOutputStream(f);
                 fos.write(content.getBytes("UTF-8"));

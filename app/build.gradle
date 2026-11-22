@@ -10,8 +10,9 @@ android {
         applicationId "com.xbw.exp"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        // CI 传 -Pvc=<run_number>，本地构建默认 1，方便在手机上确认装的是哪一版
+        versionCode project.hasProperty('vc') ? project.property('vc').toInteger() : 1
+        versionName project.hasProperty('vc') ? "1.0." + project.property('vc') : "1.0"
     }
 
     buildTypes {
