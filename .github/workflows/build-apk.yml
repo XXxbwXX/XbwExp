@@ -16,10 +16,25 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
-      - name: 安装 SDK 组件
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+      - name: 准备 Android SDK
+        run: |
+          set -e
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          if [ ! -d "$SDK" ]; then SDK="/usr/local/lib/android/sdk"; fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          SDKMAN="$(ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)"
+          if [ -z "$SDKMAN" ]; then
+            echo "找不到 sdkmanager，列出目录："
+            ls -la "$SDK" || true
+            exit 1
+          fi
+          echo "sdkmanager=$SDKMAN"
+          yes | "$SDKMAN" --licenses > /dev/null 2>&1 || true
+          "$SDKMAN" "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null
+          echo "--- 已安装 ---"
+          ls "$SDK/platforms" || true
+          ls "$SDK/build-tools" || true
 
       - uses: gradle/actions/setup-gradle@v3
         with:
