@@ -142,6 +142,16 @@ public class MainActivity extends Activity {
             Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
         }
 
+        /** 立刻发一条通知，用于验证每日提醒链路。 */
+        @JavascriptInterface
+        public void testNotify() {
+            try {
+                sendBroadcast(new Intent(MainActivity.this, ReminderReceiver.class));
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, "通知失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+
         /** WebView 里 a[download] 不工作，导出文件走这里。 */
         @JavascriptInterface
         public String saveJson(String filename, String content) {
